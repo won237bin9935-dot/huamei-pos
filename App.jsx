@@ -1231,8 +1231,8 @@ export default function App() {
           <div style={{ display: "flex", gap: 8 }}>
             {view === "admin" ? (
               <>
-                <button onClick={() => { setView("shop"); setShowAdminBtn(false); }} style={{ ...btnStyle("#2196F3", true), fontSize: 13 }}>← 員工購物頁</button>
-                <button onClick={() => { setView("shop"); setShowAdminBtn(false); }} style={{ ...btnStyle("#ef5350", true), fontSize: 13 }}>登出</button>
+                <button onClick={() => { setView("shop"); }} style={{ ...btnStyle("#2196F3", true), fontSize: 13 }}>← 員工購物頁</button>
+                <button onClick={() => { setView("shop"); }} style={{ ...btnStyle("#ef5350", true), fontSize: 13 }}>登出</button>
               </>
             ) : showAdminBtn ? (
               <button onClick={() => setShowPwdModal(true)} style={{ ...btnStyle("#455a64", true), fontSize: 13, display: "flex", alignItems: "center", gap: 5 }}>
