@@ -1,27 +1,51 @@
 import { useState, useEffect, useRef } from "react";
 
+const FIREBASE_URL = "https://huamei-pos-default-rtdb.asia-southeast1.firebasedatabase.app";
+
 const DEFAULT_ADMIN_PASSWORD = "HuaMei2026";
 
 const SAMPLE_PRODUCTS = [];
 
-function useStorage(key, defaultVal, shared = false) {
+function useStorage(key, defaultVal) {
   const [val, setVal] = useState(defaultVal);
   const [loaded, setLoaded] = useState(false);
+  const dbKey = key.replace(/[:.]/g, "_");
+
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+    const load = async () => {
       try {
-        const r = await window.storage.get(key, shared);
-        setVal(JSON.parse(r.value));
+        const res = await fetch(`${FIREBASE_URL}/${dbKey}.json`, { cache: "no-store" });
+        const data = await res.json();
+        if (!cancelled) {
+          setVal(data !== null && data !== undefined ? data : defaultVal);
+          setLoaded(true);
+        }
       } catch {
-        setVal(defaultVal);
+        if (!cancelled) {
+          setVal(defaultVal);
+          setLoaded(true);
+        }
       }
-      setLoaded(true);
-    })();
-  }, []);
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [dbKey]);
+
   const save = async (v) => {
     setVal(v);
-    try { await window.storage.set(key, JSON.stringify(v), shared); } catch {}
+    try {
+      const res = await fetch(`${FIREBASE_URL}/${dbKey}.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(v)
+      });
+      if (!res.ok) throw new Error("Save failed");
+    } catch (e) {
+      console.error("Firebase error:", e);
+    }
   };
+
   return [val, save, loaded];
 }
 
@@ -1119,10 +1143,10 @@ function btnStyle(color, outline = false) {
 
 // ─── APP ───────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [products, setProductsRaw, prodLoaded] = useStorage("glasses:products", SAMPLE_PRODUCTS, true);
-  const [orders, setOrdersRaw, ordLoaded] = useStorage("glasses:orders", [], true);
-  const [archivedOrders, setArchivedOrdersRaw, archLoaded] = useStorage("glasses:archived", [], true);
-  const [adminPwd, setAdminPwdRaw, pwdLoaded] = useStorage("glasses:adminpwd", DEFAULT_ADMIN_PASSWORD, true);
+  const [products, setProductsRaw, prodLoaded] = useStorage("glasses:products", SAMPLE_PRODUCTS);
+  const [orders, setOrdersRaw, ordLoaded] = useStorage("glasses:orders", []);
+  const [archivedOrders, setArchivedOrdersRaw, archLoaded] = useStorage("glasses:archived", []);
+  const [adminPwd, setAdminPwdRaw, pwdLoaded] = useStorage("glasses:adminpwd", DEFAULT_ADMIN_PASSWORD);
   const [view, setView] = useState("shop");
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [pwd, setPwd] = useState("");
