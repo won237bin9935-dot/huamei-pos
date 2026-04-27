@@ -487,7 +487,7 @@ function EmployeeView({ products, onOrder }) {
 }
 
 // ─── ADMIN VIEW ────────────────────────────────────────────────────────────────
-function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdminPwd, archiveOrder, archivedOrders }) {
+function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdminPwd, archiveOrder, archivedOrders, setArchivedOrders, superPwd, setSuperPwd }) {
   const [tab, setTab] = useState("orders");
   const [editingProduct, setEditingProduct] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -496,11 +496,24 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
   const [pwdMsg, setPwdMsg] = useState("");
+  const [showSuperPwdChange, setShowSuperPwdChange] = useState(false);
+  const [newSuperPwd, setNewSuperPwd] = useState("");
+  const [confirmSuperPwd, setConfirmSuperPwd] = useState("");
+  const [superPwdMsg, setSuperPwdMsg] = useState("");
   const [archiveModal, setArchiveModal] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [orderFilter, setOrderFilter] = useState("全部");
   const fileRef = useRef();
   const editFileRef = useRef();
+
+  const saveSuperPwd = () => {
+    if (newSuperPwd.length < 6) { setSuperPwdMsg("超級密碼至少需要 6 個字元"); return; }
+    if (newSuperPwd !== confirmSuperPwd) { setSuperPwdMsg("兩次密碼不一致"); return; }
+    setSuperPwd(newSuperPwd);
+    setNewSuperPwd(""); setConfirmSuperPwd("");
+    setSuperPwdMsg("✅ 超級密碼已更新！");
+    setTimeout(() => { setSuperPwdMsg(""); setShowSuperPwdChange(false); }, 2000);
+  };
 
   const savePwd = () => {
     if (newPwd.length < 6) { setPwdMsg("密碼至少需要 6 個字元"); return; }
@@ -613,8 +626,32 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a2b3c" }}>🔧 管理後台</h2>
-        <button onClick={() => setShowPwdChange(!showPwdChange)} style={{ ...btnStyle("#78909c", true), fontSize: 12, padding: "6px 12px" }}>🔑 修改密碼</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => { setShowSuperPwdChange(!showSuperPwdChange); setShowPwdChange(false); }} style={{ ...btnStyle("#c62828", true), fontSize: 12, padding: "6px 12px" }}>⭐ 超級密碼</button>
+          <button onClick={() => { setShowPwdChange(!showPwdChange); setShowSuperPwdChange(false); }} style={{ ...btnStyle("#78909c", true), fontSize: 12, padding: "6px 12px" }}>🔑 修改密碼</button>
+        </div>
       </div>
+
+      {showSuperPwdChange && (
+        <div style={{ background: "white", borderRadius: 14, padding: "16px 18px", marginBottom: 18, border: "2px solid #ffcdd2", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+          <h4 style={{ margin: "0 0 6px", color: "#c62828", fontSize: 15 }}>⭐ 修改超級密碼</h4>
+          <p style={{ margin: "0 0 12px", fontSize: 12, color: "#78909c" }}>超級密碼專用於清除刪除訂單紀錄，只有您知道此密碼</p>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>新超級密碼（至少6碼）</label>
+              <input type="password" value={newSuperPwd} onChange={e => setNewSuperPwd(e.target.value)} placeholder="輸入新超級密碼"
+                style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #ffcdd2", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>確認新超級密碼</label>
+              <input type="password" value={confirmSuperPwd} onChange={e => setConfirmSuperPwd(e.target.value)} placeholder="再輸入一次"
+                style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #ffcdd2", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+            </div>
+            <button onClick={saveSuperPwd} style={{ ...btnStyle("#c62828"), padding: "8px 16px", fontSize: 13 }}>儲存</button>
+          </div>
+          {superPwdMsg && <div style={{ marginTop: 8, fontSize: 13, color: superPwdMsg.startsWith("✅") ? "#4CAF50" : "#e53935" }}>{superPwdMsg}</div>}
+        </div>
+      )}
 
       {showPwdChange && (
         <div style={{ background: "white", borderRadius: 14, padding: "16px 18px", marginBottom: 18, border: "1.5px solid #e2e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
@@ -1031,13 +1068,13 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
             {archivedOrders.length > 0 && (
               <button onClick={() => setConfirmModal({
                 title: "清除所有刪除紀錄",
-                message: "請輸入管理員密碼確認：",
+                message: "請輸入超級密碼確認：",
                 isPasswordMode: true,
                 inputVal: "",
                 error: "",
                 onConfirm: (pwd) => {
-                  if (pwd !== adminPwd) {
-                    setConfirmModal(m => ({ ...m, error: "密碼錯誤，請重試" }));
+                  if (pwd !== superPwd) {
+                    setConfirmModal(m => ({ ...m, error: "超級密碼錯誤，請重試" }));
                     return;
                   }
                   setArchivedOrders([]);
@@ -1234,6 +1271,7 @@ export default function App() {
   const [orders, setOrdersRaw, ordLoaded] = useStorage("glasses:orders", []);
   const [archivedOrders, setArchivedOrdersRaw, archLoaded] = useStorage("glasses:archived", []);
   const [adminPwd, setAdminPwdRaw, pwdLoaded] = useStorage("glasses:adminpwd", DEFAULT_ADMIN_PASSWORD);
+  const [superPwd, setSuperPwdRaw, superPwdLoaded] = useStorage("glasses:superpwd", "HuaMei@Super2026");
   const [view, setView] = useState("shop");
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [pwd, setPwd] = useState("");
@@ -1258,6 +1296,7 @@ export default function App() {
   const setOrders = (v) => setOrdersRaw(typeof v === "function" ? v(orders) : v);
   const setArchivedOrders = (v) => setArchivedOrdersRaw(typeof v === "function" ? v(archivedOrders) : v);
   const setAdminPwd = (v) => setAdminPwdRaw(v);
+  const setSuperPwd = (v) => setSuperPwdRaw(v);
 
   const handleOrder = (order) => {
     const insufficient = order.items.filter(item => {
@@ -1297,7 +1336,7 @@ export default function App() {
     else setPwdErr(true);
   };
 
-  if (!prodLoaded || !ordLoaded || !pwdLoaded || !archLoaded) return (
+  if (!prodLoaded || !ordLoaded || !pwdLoaded || !archLoaded || !superPwdLoaded) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #1a2b3c 0%, #2d4a6b 100%)" }}>
       <div style={{ textAlign: "center" }}>
         <div style={{ color: "white", fontSize: 36, fontWeight: 900, letterSpacing: 4, marginBottom: 8 }}>華美光學</div>
@@ -1334,7 +1373,7 @@ export default function App() {
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "28px 20px" }}>
         {view === "shop"
           ? <EmployeeView products={products} onOrder={handleOrder} />
-          : <AdminView products={products} setProducts={setProducts} orders={orders} setOrders={setOrders} adminPwd={adminPwd} setAdminPwd={setAdminPwd} archiveOrder={archiveOrder} archivedOrders={archivedOrders} />}
+          : <AdminView products={products} setProducts={setProducts} orders={orders} setOrders={setOrders} adminPwd={adminPwd} setAdminPwd={setAdminPwd} archiveOrder={archiveOrder} archivedOrders={archivedOrders} setArchivedOrders={setArchivedOrders} superPwd={superPwd} setSuperPwd={setSuperPwd} />}
       </div>
 
       {/* Password Modal */}
