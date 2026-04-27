@@ -256,6 +256,9 @@ function EmployeeView({ products, onOrder }) {
         <div style={{ background: "#fff8e1", borderRadius: 10, padding: "12px 16px", fontSize: 14, color: "#795548", lineHeight: 1.9, borderLeft: "3px solid #FFC107" }}>
           🙏 感謝您的購買！商品備齊後，我們將主動通知您領取時間與地點，屆時請以<span style={{ color: "#e53935", fontWeight: 800, textDecoration: "underline" }}>『現金』</span>付款，謝謝您的配合。
         </div>
+        <div style={{ background: "#f1f5f9", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#64748b", lineHeight: 1.7, marginTop: 8, textAlign: "center" }}>
+          📞 訂單如有需要修改請通知 XXX
+        </div>
       </div>
       <button onClick={() => setPage("shop")} style={{ ...btnStyle("#2196F3"), marginTop: 4, padding: "12px 32px", fontSize: 15 }}>繼續瀏覽</button>
     </div>
@@ -314,7 +317,7 @@ function EmployeeView({ products, onOrder }) {
               const availableStock = getAvailableStock(p);
               const isLow = availableStock > 0 && availableStock <= 3;
               return (
-                <div key={p.id} style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", transition: "transform 0.2s, box-shadow 0.2s", cursor: p.stock <= 0 ? "default" : "pointer", filter: p.stock <= 0 ? "grayscale(40%)" : "none", opacity: p.stock <= 0 ? 0.9 : 1, border: isLow ? "2px solid #ff7043" : "2px solid transparent" }}
+                <div key={p.id} style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", transition: "transform 0.2s, box-shadow 0.2s", cursor: p.stock <= 0 ? "default" : "pointer", filter: p.stock <= 0 ? "grayscale(20%)" : "none", opacity: p.stock <= 0 ? 0.95 : 1, border: isLow ? "2px solid #ff7043" : "2px solid transparent" }}
                   onMouseEnter={e => { if(p.stock > 0) { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.14)"; }}}
                   onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.08)"; }}>
                   <div style={{ height: 140, overflow: "hidden", position: "relative" }} onClick={() => setSelectedProduct(p)}>
@@ -440,7 +443,7 @@ function EmployeeView({ products, onOrder }) {
                 <span>總計</span><span>${cartTotal}</span>
               </div>
               <div style={{ marginTop: 12, padding: "12px 14px", background: "#fff3e0", borderRadius: 8, fontSize: 14, color: "#bf360c", lineHeight: 1.8, borderLeft: "3px solid #FF6D00" }}>
-                📌 本次活動為員工內部特賣出清，商品均以優惠價提供，售出後恕不提供保固、退換貨服務，敬請於購買前確認款式，謝謝您的理解與配合。
+                📌 本次活動為員工內部特賣出清，商品均以優惠價提供，</div><div style={{ fontSize: 14, color: "#bf360c", lineHeight: 1.8 }}><span style={{ fontWeight: 900, textDecoration: "underline", fontSize: 15 }}>「售出後恕不提供保固、退換貨服務」</span>，敬請於購買前確認款式，謝謝您的理解與配合。
               </div>
             </div>
             <button
