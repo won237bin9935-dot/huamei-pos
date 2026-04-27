@@ -443,7 +443,7 @@ function EmployeeView({ products, onOrder }) {
                 <span>總計</span><span>${cartTotal}</span>
               </div>
               <div style={{ marginTop: 12, padding: "12px 14px", background: "#fff3e0", borderRadius: 8, fontSize: 14, color: "#bf360c", lineHeight: 1.9, borderLeft: "3px solid #FF6D00" }}>
-                📌 本次活動為員工內部特賣出清，商品均以優惠價提供，<span style={{ fontWeight: 900, textDecoration: "underline", fontSize: 15 }}>「售出後恕不提供保固、退換貨服務」</span>，敬請於購買前確認款式，謝謝您的理解與配合。
+                📌 本次活動為員工內部特賣出清，商品均以優惠價提供，<span style={{ fontWeight: 900, textDecoration: "underline", fontSize: 16, color: "#e53935" }}>「售出後恕不提供保固、退換貨服務」</span>，敬請於購買前確認款式，謝謝您的理解與配合。
               </div>
             </div>
             <button
