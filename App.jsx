@@ -795,37 +795,52 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
             return filtered.map((order) => {
               const idx = order._idx;
               return (
-                <div key={idx} style={{ background: "white", borderRadius: 16, padding: "16px 18px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                    <div>
-                      <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>訂單編號：{order.orderNo || "—"}</div>
-                      <div style={{ fontWeight: 700, color: "#1a2b3c", fontSize: 15 }}>{order.name} <span style={{ color: "#78909c", fontWeight: 400, fontSize: 13 }}>工號：{order.employeeId}</span></div>
-                      <div style={{ fontSize: 12, color: "#94a3b8" }}>🕐 {order.date}</div>
-                    </div>
+                <div key={idx} style={{ background: "white", borderRadius: 16, marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", overflow: "hidden", borderLeft: `5px solid ${statusColor[order.status || "待處理"]}` }}>
+                  {/* 訂單頂部：編號 + 狀態 */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: statusBg[order.status || "待處理"] }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: statusColor[order.status || "待處理"], letterSpacing: 0.5 }}>#{order.orderNo || "—"}</div>
                     <select value={order.status || "待處理"} onChange={e => updateOrderStatus(idx, e.target.value)}
-                      style={{ padding: "8px 14px", borderRadius: 20, border: `2.5px solid ${statusColor[order.status || "待處理"]}`, color: statusColor[order.status || "待處理"], fontWeight: 800, fontSize: 14, cursor: "pointer", outline: "none", background: statusBg[order.status || "待處理"], minWidth: 130 }}>
+                      style={{ padding: "6px 12px", borderRadius: 20, border: `2px solid ${statusColor[order.status || "待處理"]}`, color: statusColor[order.status || "待處理"], fontWeight: 800, fontSize: 13, cursor: "pointer", outline: "none", background: "white", minWidth: 120 }}>
                       {["待處理", "備貨中", "已取消", "已完成訂單", "🗑 刪除此筆訂單"].map(s => (
                         <option key={s} value={s} style={{ color: statusColor[s], background: statusBg[s], fontWeight: 600 }}>{s}</option>
                       ))}
                     </select>
                   </div>
-                  <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 10 }}>
+
+                  {/* 員工資訊 */}
+                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", gap: 20 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>姓名</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: "#1a2b3c" }}>{order.name}</div>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>工號</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: "#1a2b3c" }}>{order.employeeId}</div>
+                    </div>
+                    <div style={{ flex: 1.5 }}>
+                      <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>下單時間</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#475569" }}>{order.date}</div>
+                    </div>
+                  </div>
+
+                  {/* 商品明細 */}
+                  <div style={{ padding: "10px 16px" }}>
                     {order.items.map((item, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", borderBottom: "1px solid #f8fafc" }}>
-                        <div style={{ width: 48, height: 48, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#f1f5f9" }}>
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < order.items.length - 1 ? "1px solid #f1f5f9" : "none" }}>
+                        <div style={{ width: 70, height: 70, borderRadius: 10, overflow: "hidden", flexShrink: 0, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
                           {item.image
                             ? <img src={item.image} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                             : <GlassesPlaceholder name="" />}
                         </div>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2b3c" }}>{item.name}</div>
-                          <div style={{ fontSize: 12, color: "#94a3b8" }}>× {item.qty} 件</div>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: "#1a2b3c" }}>{item.name}</div>
+                          <div style={{ fontSize: 13, color: "#78909c", marginTop: 3 }}>數量：{item.qty} 件</div>
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "#475569" }}>${item.price * item.qty}</span>
+                        <div style={{ fontSize: 16, fontWeight: 900, color: "#e53935" }}>${item.price * item.qty}</div>
                       </div>
                     ))}
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                      <div style={{ fontWeight: 800, color: "#e53935", fontSize: 16 }}>總計 ${order.total}</div>
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10, paddingTop: 10, borderTop: "1px solid #f1f5f9" }}>
+                      <div style={{ fontWeight: 900, color: "#e53935", fontSize: 18 }}>總計 ${order.total}</div>
                     </div>
                   </div>
                 </div>
