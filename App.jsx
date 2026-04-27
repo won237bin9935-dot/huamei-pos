@@ -1023,9 +1023,30 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
       {/* Archived Tab */}
       {tab === "archived" && (
         <div>
-          <div style={{ background: "linear-gradient(135deg, #37474f, #546e7a)", borderRadius: 16, padding: "14px 20px", marginBottom: 20, color: "white" }}>
-            <div style={{ fontSize: 13, opacity: 0.8 }}>封存的訂單永久保存，不會影響庫存</div>
-            <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>🗑 刪除訂單紀錄（{archivedOrders.length} 筆）</div>
+          <div style={{ background: "linear-gradient(135deg, #37474f, #546e7a)", borderRadius: 16, padding: "14px 20px", marginBottom: 20, color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 13, opacity: 0.8 }}>封存的訂單永久保存，不會影響庫存</div>
+              <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>🗑 刪除訂單紀錄（{archivedOrders.length} 筆）</div>
+            </div>
+            {archivedOrders.length > 0 && (
+              <button onClick={() => setConfirmModal({
+                title: "清除所有刪除紀錄",
+                message: "請輸入管理員密碼確認：",
+                isPasswordMode: true,
+                inputVal: "",
+                error: "",
+                onConfirm: (pwd) => {
+                  if (pwd !== adminPwd) {
+                    setConfirmModal(m => ({ ...m, error: "密碼錯誤，請重試" }));
+                    return;
+                  }
+                  setArchivedOrders([]);
+                  setConfirmModal(null);
+                }
+              })} style={{ background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.4)", color: "white", borderRadius: 10, padding: "8px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+                🗑 清除所有紀錄
+              </button>
+            )}
           </div>
           {archivedOrders.length === 0 ? (
             <div style={{ textAlign: "center", padding: 60, color: "#94a3b8" }}>
@@ -1122,9 +1143,27 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
               <h3 style={{ margin: "0 0 8px", color: "#1a2b3c", fontSize: 17 }}>{confirmModal.title}</h3>
               <p style={{ color: "#64748b", fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-line", margin: 0 }}>{confirmModal.message}</p>
             </div>
+            {confirmModal.isPasswordMode && (
+              <div style={{ marginBottom: 8 }}>
+                <input
+                  type="password"
+                  value={confirmModal.inputVal || ""}
+                  onChange={e => setConfirmModal(m => ({ ...m, inputVal: e.target.value, error: "" }))}
+                  placeholder="請輸入管理員密碼"
+                  style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${confirmModal.error ? "#ef5350" : "#e2e8f0"}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                />
+                {confirmModal.error && <div style={{ color: "#ef5350", fontSize: 12, marginTop: 6 }}>{confirmModal.error}</div>}
+              </div>
+            )}
             <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
               <button onClick={() => setConfirmModal(null)} style={{ ...btnStyle("#78909c", true), flex: 1 }}>取消</button>
-              <button onClick={confirmModal.onConfirm} style={{ ...btnStyle("#ef5350"), flex: 2 }}>確認</button>
+              <button onClick={() => {
+                if (confirmModal.isPasswordMode) {
+                  confirmModal.onConfirm(confirmModal.inputVal || "");
+                } else {
+                  confirmModal.onConfirm();
+                }
+              }} style={{ ...btnStyle("#ef5350"), flex: 2 }}>確認</button>
             </div>
           </div>
         </div>
