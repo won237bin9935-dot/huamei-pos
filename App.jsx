@@ -262,8 +262,10 @@ function EmployeeView({ products, onOrder }) {
         <div style={{ background: "#fff8e1", borderRadius: 10, padding: "12px 16px", fontSize: 14, color: "#795548", lineHeight: 1.9, borderLeft: "3px solid #FFC107" }}>
           🙏 感謝您的購買！商品備齊後，我們將主動通知您領取時間與地點，屆時請以<span style={{ color: "#e53935", fontWeight: 800, textDecoration: "underline" }}>『現金』</span>付款，謝謝您的配合。
         </div>
-        <div style={{ background: "#f1f5f9", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#64748b", lineHeight: 1.7, marginTop: 8, textAlign: "center" }}>
-          📞 訂單如有需要修改請通知 XXX
+        <div style={{ background: "#e3f2fd", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#1565c0", lineHeight: 1.9, marginTop: 8, borderLeft: "3px solid #1976D2" }}>
+          📞 如訂單有任何問題，請聯繫人資單位協助處理：<br/>
+          <span style={{ fontWeight: 700, color: "#1a2b3c" }}>📍 中崙</span>　☎️ 2233、2210<br/>
+          <span style={{ fontWeight: 700, color: "#1a2b3c" }}>📍 樹谷</span>　☎️ 7324、7322
         </div>
       </div>
       <button onClick={() => setPage("shop")} style={{ ...btnStyle("#2196F3"), marginTop: 4, padding: "12px 32px", fontSize: 15 }}>繼續瀏覽</button>
