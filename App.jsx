@@ -1263,7 +1263,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                     });
                     setProducts(updatedProducts);
                   }
-                  archiveOrder(archiveModal.idx, archiveModal.inputId.trim());
+                  archiveOrder(archiveModal.idx, archiveModal.inputId.trim(), archiveModal.returnStock);
                 }
                 setArchiveModal(null);
               }} style={{ ...btnStyle("#ef5350"), flex: 2 }}>確認刪除</button>
@@ -1431,10 +1431,10 @@ export default function App() {
     return orderNo;
   };
 
-  const archiveOrder = (idx, confirmedId) => {
+  const archiveOrder = (idx, confirmedId, stockReturned = false) => {
     const order = orders[idx];
     const archivedAt = new Date().toLocaleString("zh-TW");
-    setArchivedOrders([...archivedOrders, { ...order, archivedAt, archivedBy: confirmedId }]);
+    setArchivedOrders([...archivedOrders, { ...order, archivedAt, archivedBy: confirmedId, stockReturned }]);
     setOrders(orders.filter((_, i) => i !== idx));
   };
 
