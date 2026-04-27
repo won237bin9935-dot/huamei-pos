@@ -638,6 +638,11 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
           <p style={{ margin: "0 0 12px", fontSize: 12, color: "#78909c" }}>超級密碼專用於清除刪除訂單紀錄，只有您知道此密碼</p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
             <div style={{ flex: 1, minWidth: 140 }}>
+              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>現有超級密碼</label>
+              <input type="password" value={newProduct.currentSuperPwd || ""} onChange={e => setNewProduct(p => ({ ...p, currentSuperPwd: e.target.value }))} placeholder="請先輸入現有超級密碼"
+                style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #ffcdd2", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 140 }}>
               <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>新超級密碼（至少6碼）</label>
               <input type="password" value={newSuperPwd} onChange={e => setNewSuperPwd(e.target.value)} placeholder="輸入新超級密碼"
                 style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #ffcdd2", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
@@ -647,7 +652,11 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
               <input type="password" value={confirmSuperPwd} onChange={e => setConfirmSuperPwd(e.target.value)} placeholder="再輸入一次"
                 style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #ffcdd2", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
-            <button onClick={saveSuperPwd} style={{ ...btnStyle("#c62828"), padding: "8px 16px", fontSize: 13 }}>儲存</button>
+            <button onClick={() => {
+              if (newProduct.currentSuperPwd !== superPwd) { setSuperPwdMsg("現有超級密碼錯誤"); return; }
+              saveSuperPwd();
+              setNewProduct(p => ({ ...p, currentSuperPwd: "" }));
+            }} style={{ ...btnStyle("#c62828"), padding: "8px 16px", fontSize: 13 }}>儲存</button>
           </div>
           {superPwdMsg && <div style={{ marginTop: 8, fontSize: 13, color: superPwdMsg.startsWith("✅") ? "#4CAF50" : "#e53935" }}>{superPwdMsg}</div>}
         </div>
