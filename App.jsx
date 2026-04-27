@@ -375,7 +375,10 @@ function EmployeeView({ products, onOrder }) {
             </div>
           ) : (
             <div>
-              {cart.map(item => (
+              {cart.map(item => {
+                const product = products.find(p => p.id === item.id);
+                const maxStock = product ? product.stock + item.qty : item.qty;
+                return (
                 <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 14, background: "white", borderRadius: 14, padding: "12px 16px", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
                   <div style={{ width: 60, height: 60, borderRadius: 10, overflow: "hidden", flexShrink: 0 }}>
                     {item.image
@@ -383,13 +386,26 @@ function EmployeeView({ products, onOrder }) {
                       : <GlassesPlaceholder name="" />}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: "#1a2b3c" }}>{item.name}</div>
+                    <div style={{ fontWeight: 700, color: "#1a2b3c", fontSize: 14 }}>{item.name}</div>
                     <div style={{ fontSize: 13, color: "#94a3b8" }}>${item.price} × {item.qty}</div>
                   </div>
-                  <div style={{ fontWeight: 800, color: "#e53935", marginRight: 8 }}>${item.price * item.qty}</div>
+                  <div style={{ fontWeight: 800, color: "#e53935", marginRight: 4 }}>${item.price * item.qty}</div>
+                  {/* 增減按鈕 */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <button onClick={() => {
+                      if (item.qty <= 1) removeFromCart(item.id);
+                      else setCart(prev => prev.map(c => c.id === item.id ? { ...c, qty: c.qty - 1 } : c));
+                    }} style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 800, fontSize: 16, color: "#ef5350", display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
+                    <span style={{ fontSize: 14, fontWeight: 700, minWidth: 20, textAlign: "center" }}>{item.qty}</span>
+                    <button onClick={() => {
+                      if (item.qty >= maxStock) return;
+                      setCart(prev => prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c));
+                    }} style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid #e2e8f0", background: item.qty >= maxStock ? "#f1f5f9" : "white", cursor: item.qty >= maxStock ? "not-allowed" : "pointer", fontWeight: 800, fontSize: 16, color: item.qty >= maxStock ? "#cbd5e1" : "#1565C0", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+                  </div>
                   <button onClick={() => removeFromCart(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ef5350", padding: 4 }}><IconTrash /></button>
                 </div>
-              ))}
+                );
+              })}
               <div style={{ background: "linear-gradient(135deg, #1a2b3c, #2d4a6b)", borderRadius: 16, padding: "18px 20px", marginTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ color: "white", fontWeight: 600 }}>合計</span>
                 <span style={{ color: "white", fontSize: 24, fontWeight: 800 }}>${cartTotal}</span>
