@@ -761,23 +761,9 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                 );
               })}
             </div>
-            {orders.length > 0 && (
-              <button onClick={() => setSelectMode(!selectMode)}
-                style={{ ...btnStyle(selectMode ? "#1565C0" : "#78909c", !selectMode), fontSize: 11, padding: "4px 10px", flexShrink: 0 }}>
-                {selectMode ? "✕ 取消選取" : "☑ 選取刪除"}
-              </button>
-            )}
+
           </div>
 
-          {/* 選取模式工具列 */}
-          {selectMode && selectedOrders.size > 0 && (
-            <div style={{ background: "#fff3e0", borderRadius: 12, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10, border: "1.5px solid #FFB300" }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#E65100", flex: 1 }}>已選取 {selectedOrders.size} 筆訂單</span>
-              <button onClick={() => {
-                setArchiveModal({ idx: null, inputId: "", error: "", isBulkDelete: true });
-              }} style={{ ...btnStyle("#ef5350"), fontSize: 12, padding: "6px 14px" }}>🗑 刪除選取</button>
-            </div>
-          )}
           {orders.length > 0 && (
             <button onClick={() => {
               const header = "訂單編號,日期,姓名,工號,商品,數量,總金額,狀態";
@@ -817,20 +803,11 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
             return filtered.map((order) => {
               const idx = order._idx;
               return (
-                <div key={idx} style={{ background: "white", borderRadius: 16, marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", overflow: "hidden", borderLeft: `5px solid ${statusColor[order.status || "待處理"]}`, opacity: selectMode && !selectedOrders.has(idx) ? 0.7 : 1, transition: "opacity 0.2s" }}>
+                <div key={idx} style={{ background: "white", borderRadius: 16, marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", overflow: "hidden", borderLeft: `5px solid ${statusColor[order.status || "待處理"]}`,  }}>
                   {/* 訂單頂部：編號 + 狀態 */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: statusBg[order.status || "待處理"] }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      {selectMode && (
-                        <input type="checkbox" checked={selectedOrders.has(idx)}
-                          onChange={() => {
-                            const next = new Set(selectedOrders);
-                            next.has(idx) ? next.delete(idx) : next.add(idx);
-                            setSelectedOrders(next);
-                          }}
-                          style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#e53935" }}
-                        />
-                      )}
+
                       <div style={{ fontSize: 13, fontWeight: 800, color: statusColor[order.status || "待處理"], letterSpacing: 0.5 }}>#{order.orderNo || "—"}</div>
                     </div>
                     <select value={order.status || "待處理"} onChange={e => updateOrderStatus(idx, e.target.value)}
