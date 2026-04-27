@@ -11,31 +11,36 @@ function useStorage(key, defaultVal) {
   const [loaded, setLoaded] = useState(false);
   const dbKey = key.replace(/[:.]/g, "_");
   const intervalRef = useRef(null);
+  const localRef = useRef(null); // Track local version to avoid overwrite
 
   useEffect(() => {
     let cancelled = false;
 
-    const load = async () => {
+    const load = async (isInitial = false) => {
       try {
         const res = await fetch(`${FIREBASE_URL}/${dbKey}.json`, { cache: "no-store" });
         const data = await res.json();
         if (!cancelled) {
-          setVal(data !== null && data !== undefined ? data : defaultVal);
-          setLoaded(true);
+          // Only update from remote if no recent local change (within 5 seconds)
+          const now = Date.now();
+          if (isInitial || !localRef.current || (now - localRef.current > 5000)) {
+            setVal(data !== null && data !== undefined ? data : defaultVal);
+          }
+          if (isInitial) setLoaded(true);
         }
       } catch {
-        if (!cancelled) {
+        if (!cancelled && isInitial) {
           setVal(defaultVal);
           setLoaded(true);
         }
       }
     };
 
-    load();
+    load(true);
 
-    // Poll every 10 seconds for real-time updates
+    // Poll every 10 seconds
     intervalRef.current = setInterval(() => {
-      if (!cancelled) load();
+      if (!cancelled) load(false);
     }, 10000);
 
     return () => {
@@ -45,6 +50,7 @@ function useStorage(key, defaultVal) {
   }, [dbKey]);
 
   const save = async (v) => {
+    localRef.current = Date.now(); // Mark local change time
     setVal(v);
     try {
       const res = await fetch(`${FIREBASE_URL}/${dbKey}.json`, {
