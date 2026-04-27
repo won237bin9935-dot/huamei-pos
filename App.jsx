@@ -513,6 +513,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
   const [confirmSuperPwd, setConfirmSuperPwd] = useState("");
   const [superPwdMsg, setSuperPwdMsg] = useState("");
   const [archiveModal, setArchiveModal] = useState(null);
+  // archiveModal: { idx, inputId, error, isBulkDelete, returnStock }
   const [confirmModal, setConfirmModal] = useState(null);
   const [orderFilter, setOrderFilter] = useState("全部");
   const [selectMode, setSelectMode] = useState(false);
@@ -574,47 +575,11 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
   };
 
   const updateOrderStatus = (idx, status) => {
-    const order = orders[idx];
-    const prevStatus = order.status || "待處理";
-
-    // 選擇「刪除此筆訂單」→ 觸發封存彈窗
+    // 選擇「刪除此筆訂單」→ 觸發刪除彈窗
     if (status === "🗑 刪除此筆訂單") {
-      setArchiveModal({ idx, inputId: "", error: "" });
+      setArchiveModal({ idx, inputId: "", error: "", returnStock: false, isBulkDelete: false });
       return;
     }
-
-    // 已取消 → 需輸入工號確認，再退庫存
-    if (status === "已取消" && prevStatus !== "已取消") {
-      const itemList = order.items.map(i => `${i.name} × ${i.qty}`).join("、");
-      setArchiveModal({
-        idx,
-        inputId: "",
-        error: "",
-        isCancelMode: true,
-        itemList,
-        status
-      });
-      return;
-    }
-
-    // 從已取消改回其他狀態 → 再次扣庫存
-    if (prevStatus === "已取消" && status !== "已取消") {
-      const insufficient = order.items.filter(item => {
-        const p = products.find(p => p.id === item.id);
-        return !p || p.stock < item.qty;
-      });
-      if (insufficient.length > 0) {
-        alert(`⚠️ 庫存不足，無法恢復此訂單：\n${insufficient.map(i => i.name).join("、")}`);
-        return;
-      }
-      const updatedProducts = products.map(p => {
-        const orderItem = order.items.find(item => item.id === p.id);
-        if (orderItem) return { ...p, stock: Math.max(0, p.stock - orderItem.qty) };
-        return p;
-      });
-      setProducts(updatedProducts);
-    }
-
     const updated = [...orders];
     updated[idx] = { ...updated[idx], status };
     setOrders(updated);
@@ -623,7 +588,6 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
   const statusColor = {
     "待處理": "#FF9800",
     "備貨中": "#2196F3",
-    "已取消": "#ef5350",
     "已完成訂單": "#4CAF50",
     "🗑 刪除此筆訂單": "#455a64"
   };
@@ -631,7 +595,6 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
   const statusBg = {
     "待處理": "#fff8e1",
     "備貨中": "#e3f2fd",
-    "已取消": "#ffebee",
     "已完成訂單": "#e8f5e9",
     "🗑 刪除此筆訂單": "#eceff1"
   };
@@ -786,7 +749,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
           <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
               <span style={{ fontSize: 12, color: "#94a3b8", marginRight: 2 }}>篩選：</span>
-              {["全部", "待處理", "備貨中", "已取消", "已完成訂單"].map(f => {
+              {["全部", "待處理", "備貨中", "已完成訂單"].map(f => {
                 const count = f === "全部" ? orders.length : orders.filter(o => (o.status || "待處理") === f).length;
                 const isActive = orderFilter === f;
                 const color = statusColor[f] || "#1a2b3c";
@@ -872,7 +835,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                     </div>
                     <select value={order.status || "待處理"} onChange={e => updateOrderStatus(idx, e.target.value)}
                       style={{ padding: "6px 12px", borderRadius: 20, border: `2px solid ${statusColor[order.status || "待處理"]}`, color: statusColor[order.status || "待處理"], fontWeight: 800, fontSize: 13, cursor: "pointer", outline: "none", background: "white", minWidth: 120 }}>
-                      {["待處理", "備貨中", "已取消", "已完成訂單", "🗑 刪除此筆訂單"].map(s => (
+                      {["待處理", "備貨中", "已完成訂單", "🗑 刪除此筆訂單"].map(s => (
                         <option key={s} value={s} style={{ color: statusColor[s], background: statusBg[s], fontWeight: 600 }}>{s}</option>
                       ))}
                     </select>
@@ -1166,71 +1129,103 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
         </div>
       )}
 
-      {/* Archive / Cancel Confirmation Modal */}
+      {/* Delete Order Modal */}
       {archiveModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}
           onClick={() => setArchiveModal(null)}>
-          <div style={{ background: "white", borderRadius: 20, padding: 28, maxWidth: 340, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}
+          <div style={{ background: "white", borderRadius: 20, padding: 28, maxWidth: 360, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}
             onClick={e => e.stopPropagation()}>
             <div style={{ textAlign: "center", marginBottom: 18 }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>{archiveModal.isCancelMode ? "⚠️" : "🗑"}</div>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>🗑</div>
               <h3 style={{ margin: 0, color: "#1a2b3c", fontSize: 18 }}>
-                {archiveModal.isCancelMode ? "確定取消此筆訂單？" : archiveModal.isBulkDelete ? `確定刪除 ${selectedOrders.size} 筆訂單？` : "確認刪除此筆訂單"}
+                {archiveModal.isBulkDelete ? `確定刪除 ${selectedOrders.size} 筆訂單？` : "確認刪除此筆訂單"}
               </h3>
-              <p style={{ color: "#78909c", fontSize: 13, marginTop: 6, whiteSpace: "pre-line" }}>
-                {archiveModal.isCancelMode
-                  ? `以下商品庫存將自動退回：\n${archiveModal.itemList}\n\n請輸入您的8碼工號確認身份`
-                  : archiveModal.isBulkDelete
-                  ? `選取的訂單將移至「刪除訂單紀錄」\n請輸入您的8碼工號確認身份`
-                  : "此訂單將移至「刪除訂單紀錄」\n請輸入您的8碼工號確認身份"}
+              <p style={{ color: "#78909c", fontSize: 13, marginTop: 6 }}>
+                訂單將移至「刪除訂單紀錄」備查
               </p>
             </div>
-            <input
-              value={archiveModal.inputId}
-              onChange={e => setArchiveModal(m => ({ ...m, inputId: e.target.value.replace(/\D/g, "").slice(0, 8), error: "" }))}
-              placeholder="請輸入8碼工號"
-              inputMode="numeric"
-              maxLength={8}
-              style={{ width: "100%", padding: "12px 14px", border: `1.5px solid ${archiveModal.error ? "#ef5350" : "#e2e8f0"}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", marginBottom: 6, letterSpacing: 2 }}
-            />
+
+            {/* 庫存選項 */}
+            <div style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2b3c", marginBottom: 10 }}>庫存處理方式：</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                  <input type="radio" name="returnStock" checked={!archiveModal.returnStock}
+                    onChange={() => setArchiveModal(m => ({ ...m, returnStock: false }))}
+                    style={{ width: 16, height: 16, accentColor: "#1565C0" }} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1a2b3c" }}>庫存不退回</div>
+                    <div style={{ fontSize: 11, color: "#94a3b8" }}>商品已備貨或其他原因</div>
+                  </div>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                  <input type="radio" name="returnStock" checked={archiveModal.returnStock}
+                    onChange={() => setArchiveModal(m => ({ ...m, returnStock: true }))}
+                    style={{ width: 16, height: 16, accentColor: "#4CAF50" }} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1a2b3c" }}>庫存退回</div>
+                    <div style={{ fontSize: 11, color: "#94a3b8" }}>訂單取消，商品放回庫存</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* 工號輸入 */}
+            <div style={{ marginBottom: 6 }}>
+              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>請輸入您的8碼工號確認身份</label>
+              <input
+                value={archiveModal.inputId}
+                onChange={e => setArchiveModal(m => ({ ...m, inputId: e.target.value.replace(/\D/g, "").slice(0, 8), error: "" }))}
+                placeholder="請輸入8碼工號"
+                inputMode="numeric"
+                maxLength={8}
+                style={{ width: "100%", padding: "12px 14px", border: `1.5px solid ${archiveModal.error ? "#ef5350" : "#e2e8f0"}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", letterSpacing: 2 }}
+              />
+            </div>
             {archiveModal.error && <div style={{ color: "#ef5350", fontSize: 12, marginBottom: 10 }}>{archiveModal.error}</div>}
-            <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+
+            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
               <button onClick={() => setArchiveModal(null)} style={{ ...btnStyle("#78909c", true), flex: 1 }}>取消</button>
               <button onClick={() => {
                 if (archiveModal.inputId.length !== 8) { setArchiveModal(m => ({ ...m, error: "請輸入完整8碼工號" })); return; }
+                const now = new Date().toLocaleString("zh-TW");
+
                 if (archiveModal.isBulkDelete) {
                   const toDelete = [...selectedOrders];
-                  const now = new Date().toLocaleString("zh-TW");
+                  // Handle return stock for bulk
+                  if (archiveModal.returnStock) {
+                    const updatedProducts = [...products];
+                    toDelete.forEach(i => {
+                      orders[i].items.forEach(item => {
+                        const idx2 = updatedProducts.findIndex(p => p.id === item.id);
+                        if (idx2 >= 0) updatedProducts[idx2] = { ...updatedProducts[idx2], stock: updatedProducts[idx2].stock + item.qty };
+                      });
+                    });
+                    setProducts(updatedProducts);
+                  }
                   const newArchived = toDelete.map(i => ({
-                    ...orders[i],
-                    archivedAt: now,
-                    archivedBy: archiveModal.inputId.trim()
+                    ...orders[i], archivedAt: now, archivedBy: archiveModal.inputId.trim(),
+                    stockReturned: archiveModal.returnStock
                   }));
                   setArchivedOrders([...archivedOrders, ...newArchived]);
                   setOrders(orders.filter((_, i) => !selectedOrders.has(i)));
                   setSelectedOrders(new Set());
                   setSelectMode(false);
-                } else if (archiveModal.isCancelMode) {
-                  const order = orders[archiveModal.idx];
-                  const updatedProducts = products.map(p => {
-                    const orderItem = order.items.find(item => item.id === p.id);
-                    if (orderItem) return { ...p, stock: p.stock + orderItem.qty };
-                    return p;
-                  });
-                  setProducts(updatedProducts);
-                  const updated = [...orders];
-                  updated[archiveModal.idx] = { 
-                    ...updated[archiveModal.idx], 
-                    status: "已取消",
-                    cancelledBy: archiveModal.inputId.trim(),
-                    cancelledAt: new Date().toLocaleString("zh-TW")
-                  };
-                  setOrders(updated);
                 } else {
+                  // Single order delete
+                  if (archiveModal.returnStock) {
+                    const order = orders[archiveModal.idx];
+                    const updatedProducts = products.map(p => {
+                      const orderItem = order.items.find(item => item.id === p.id);
+                      if (orderItem) return { ...p, stock: p.stock + orderItem.qty };
+                      return p;
+                    });
+                    setProducts(updatedProducts);
+                  }
                   archiveOrder(archiveModal.idx, archiveModal.inputId.trim());
                 }
                 setArchiveModal(null);
-              }} style={{ ...btnStyle(archiveModal.isCancelMode ? "#ef5350" : "#455a64"), flex: 2 }}>確認</button>
+              }} style={{ ...btnStyle("#ef5350"), flex: 2 }}>確認刪除</button>
             </div>
           </div>
         </div>
