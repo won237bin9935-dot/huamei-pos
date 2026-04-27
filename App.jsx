@@ -808,7 +808,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
           ) : (() => {
             const filtered = orders.map((o, i) => ({ ...o, _idx: i }))
               .filter(o => orderFilter === "全部" || (o.status || "待處理") === orderFilter)
-              .reverse();
+              .sort((a, b) => (a.orderNo || "").localeCompare(b.orderNo || ""));
             if (filtered.length === 0) return (
               <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>
                 <p>此狀態目前沒有訂單</p>
