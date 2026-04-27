@@ -263,9 +263,9 @@ function EmployeeView({ products, onOrder }) {
           🙏 感謝您的購買！商品備齊後，我們將主動通知您領取時間與地點，屆時請以<span style={{ color: "#e53935", fontWeight: 800, textDecoration: "underline" }}>『現金』</span>付款，謝謝您的配合。
         </div>
         <div style={{ background: "#e3f2fd", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#1565c0", lineHeight: 1.9, marginTop: 8, borderLeft: "3px solid #1976D2" }}>
-          📞 如訂單有任何問題，請聯繫人資單位協助處理：<br/>
-          <span style={{ fontWeight: 700, color: "#1a2b3c" }}>📍 中崙</span>　☎️ 2233、2210<br/>
-          <span style={{ fontWeight: 700, color: "#1a2b3c" }}>📍 樹谷</span>　☎️ 7324、7322
+          📞 如訂單有任何問題，請聯繫<span style={{ textDecoration: "underline", fontWeight: 700 }}>人資單位</span>協助處理：<br/>
+          【中崙廠】：2233、2210<br/>
+          【樹谷廠】：7324、7322
         </div>
       </div>
       <button onClick={() => setPage("shop")} style={{ ...btnStyle("#2196F3"), marginTop: 4, padding: "12px 32px", fontSize: 15 }}>繼續瀏覽</button>
