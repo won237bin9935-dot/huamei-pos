@@ -556,24 +556,16 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
       return;
     }
 
-    // 已取消 → 先確認，再退庫存
+    // 已取消 → 需輸入工號確認，再退庫存
     if (status === "已取消" && prevStatus !== "已取消") {
       const itemList = order.items.map(i => `${i.name} × ${i.qty}`).join("、");
-      setConfirmModal({
-        title: "確定取消此筆訂單？",
-        message: `以下商品庫存將自動退回：\n${itemList}`,
-        onConfirm: () => {
-          const updatedProducts = products.map(p => {
-            const orderItem = order.items.find(item => item.id === p.id);
-            if (orderItem) return { ...p, stock: p.stock + orderItem.qty };
-            return p;
-          });
-          setProducts(updatedProducts);
-          const updated = [...orders];
-          updated[idx] = { ...updated[idx], status };
-          setOrders(updated);
-          setConfirmModal(null);
-        }
+      setArchiveModal({
+        idx,
+        inputId: "",
+        error: "",
+        isCancelMode: true,
+        itemList,
+        status
       });
       return;
     }
@@ -1054,38 +1046,52 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
         </div>
       )}
 
-      {/* Archive Confirmation Modal */}
+      {/* Archive / Cancel Confirmation Modal */}
       {archiveModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}
           onClick={() => setArchiveModal(null)}>
           <div style={{ background: "white", borderRadius: 20, padding: 28, maxWidth: 340, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}
             onClick={e => e.stopPropagation()}>
             <div style={{ textAlign: "center", marginBottom: 18 }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>🗄</div>
-              <h3 style={{ margin: 0, color: "#1a2b3c", fontSize: 18 }}>確認封存訂單</h3>
-              <p style={{ color: "#78909c", fontSize: 13, marginTop: 6 }}>此訂單將移至「封存紀錄」<br/>請輸入您的工號確認身份</p>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>{archiveModal.isCancelMode ? "⚠️" : "🗑"}</div>
+              <h3 style={{ margin: 0, color: "#1a2b3c", fontSize: 18 }}>
+                {archiveModal.isCancelMode ? "確定取消此筆訂單？" : "確認刪除此筆訂單"}
+              </h3>
+              <p style={{ color: "#78909c", fontSize: 13, marginTop: 6, whiteSpace: "pre-line" }}>
+                {archiveModal.isCancelMode
+                  ? `以下商品庫存將自動退回：\n${archiveModal.itemList}\n\n請輸入您的8碼工號確認身份`
+                  : "此訂單將移至「刪除訂單紀錄」\n請輸入您的8碼工號確認身份"}
+              </p>
             </div>
             <input
               value={archiveModal.inputId}
-              onChange={e => setArchiveModal(m => ({ ...m, inputId: e.target.value, error: "" }))}
-              placeholder="請輸入您的工號"
-              onKeyDown={e => {
-                if (e.key === "Enter") {
-                  if (!archiveModal.inputId.trim()) { setArchiveModal(m => ({ ...m, error: "請輸入工號" })); return; }
-                  archiveOrder(archiveModal.idx, archiveModal.inputId.trim());
-                  setArchiveModal(null);
-                }
-              }}
-              style={{ width: "100%", padding: "12px 14px", border: `1.5px solid ${archiveModal.error ? "#ef5350" : "#e2e8f0"}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", marginBottom: 6 }}
+              onChange={e => setArchiveModal(m => ({ ...m, inputId: e.target.value.replace(/\D/g, "").slice(0, 8), error: "" }))}
+              placeholder="請輸入8碼工號"
+              inputMode="numeric"
+              maxLength={8}
+              style={{ width: "100%", padding: "12px 14px", border: `1.5px solid ${archiveModal.error ? "#ef5350" : "#e2e8f0"}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", marginBottom: 6, letterSpacing: 2 }}
             />
             {archiveModal.error && <div style={{ color: "#ef5350", fontSize: 12, marginBottom: 10 }}>{archiveModal.error}</div>}
             <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
               <button onClick={() => setArchiveModal(null)} style={{ ...btnStyle("#78909c", true), flex: 1 }}>取消</button>
               <button onClick={() => {
-                if (!archiveModal.inputId.trim()) { setArchiveModal(m => ({ ...m, error: "請輸入工號" })); return; }
-                archiveOrder(archiveModal.idx, archiveModal.inputId.trim());
+                if (archiveModal.inputId.length !== 8) { setArchiveModal(m => ({ ...m, error: "請輸入完整8碼工號" })); return; }
+                if (archiveModal.isCancelMode) {
+                  const order = orders[archiveModal.idx];
+                  const updatedProducts = products.map(p => {
+                    const orderItem = order.items.find(item => item.id === p.id);
+                    if (orderItem) return { ...p, stock: p.stock + orderItem.qty };
+                    return p;
+                  });
+                  setProducts(updatedProducts);
+                  const updated = [...orders];
+                  updated[archiveModal.idx] = { ...updated[archiveModal.idx], status: "已取消" };
+                  setOrders(updated);
+                } else {
+                  archiveOrder(archiveModal.idx, archiveModal.inputId.trim());
+                }
                 setArchiveModal(null);
-              }} style={{ ...btnStyle("#455a64"), flex: 2 }}>確認封存</button>
+              }} style={{ ...btnStyle(archiveModal.isCancelMode ? "#ef5350" : "#455a64"), flex: 2 }}>確認</button>
             </div>
           </div>
         </div>
