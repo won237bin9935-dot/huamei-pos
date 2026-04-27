@@ -768,26 +768,44 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
           </div>
 
           {orders.length > 0 && (
-            <button onClick={() => {
-              const header = "訂單編號,日期,姓名,工號,商品,數量,總金額,狀態";
-              const rows = orders.map(o =>
-                o.items.map(item =>
-                  `${o.orderNo || ""},${o.date},${o.name},${o.employeeId},${item.name},${item.qty},${o.total},${o.status || "待處理"}`
-                ).join("\n")
-              ).join("\n");
-              const csv = "\uFEFF" + header + "\n" + rows;
-              const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `華美光學訂單_${new Date().toLocaleDateString("zh-TW").replace(/\//g, "")}.csv`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              setTimeout(() => URL.revokeObjectURL(url), 1000);
-            }} style={{ ...btnStyle("#4CAF50"), display: "flex", alignItems: "center", gap: 6, marginBottom: 16, fontSize: 13 }}>
-              📥 匯出 CSV（Excel）
-            </button>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8, fontWeight: 600 }}>📥 選擇匯出狀態：</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {["全部", "待處理", "備貨中", "已完成訂單"].map(status => (
+                  <button key={status} onClick={() => {
+                    const filtered = status === "全部" ? orders : orders.filter(o => (o.status || "待處理") === status);
+                    if (filtered.length === 0) { alert(`目前沒有「${status}」的訂單`); return; }
+
+                    const header = "訂單編號,日期,姓名,工號,商品,數量,總金額,狀態";
+                    const rows = filtered.map(o => {
+                      return o.items.map((item, i) => {
+                        if (i === 0) {
+                          // First item - include order info
+                          return `${o.orderNo || ""},${o.date},${o.name},${o.employeeId},${item.name},${item.qty},$${o.total},${o.status || "待處理"}`;
+                        } else {
+                          // Subsequent items - only show product info
+                          return `,,,,${item.name},${item.qty},,`;
+                        }
+                      }).join("\n");
+                    }).join("\n");
+
+                    const csv = "\uFEFF" + header + "\n" + rows;
+                    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    const dateStr = new Date().toLocaleDateString("zh-TW").replace(/\//g, "");
+                    a.download = `華美光學訂單_${status}_${dateStr}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                  }} style={{ ...btnStyle("#4CAF50"), fontSize: 12, padding: "6px 14px", display: "flex", alignItems: "center", gap: 4 }}>
+                    📥 {status}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
           {orders.length === 0 ? (
             <div style={{ textAlign: "center", padding: 60, color: "#94a3b8" }}>
