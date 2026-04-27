@@ -707,22 +707,25 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
           ["orders",   <IconOrders />, "訂單管理",    "#ffffff", "#1565C0", "#1976D2"],
           ["top3",     "🏆",          "熱賣TOP3",    "#ffffff", "#E65100", "#F57F17"],
           ["archived", "🗑",          "刪除訂單紀錄","#ffffff", "#37474f", "#546e7a"],
-          ["inventory",<IconPackage />,"商品管理",    "#ffffff", "#B71C1C", "#E53935"],
-        ].map(([key, icon, label, textColor, bgColor, activeBg]) => (
+          ["inventory",<IconPackage />,"商品管理",    "#ffffff", "#c62828", "#e53935"],
+        ].map(([key, icon, label, textColor, bgColor, activeBg]) => {
+          const isInventory = key === "inventory";
+          return (
           <button key={key} onClick={() => setTab(key)} style={{
             flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
             padding: "12px 4px", borderRadius: 12,
-            border: `2.5px solid ${tab === key ? bgColor : bgColor + "88"}`,
+            border: `2.5px solid ${tab === key ? bgColor : isInventory ? bgColor : bgColor + "88"}`,
             cursor: "pointer", fontWeight: 700, transition: "all 0.2s",
-            background: tab === key ? bgColor : bgColor + "18",
-            color: tab === key ? textColor : bgColor,
+            background: tab === key ? bgColor : isInventory ? bgColor + "cc" : bgColor + "18",
+            color: textColor,
             boxShadow: tab === key ? `0 4px 14px ${bgColor}44` : "none",
             transform: tab === key ? "translateY(-2px)" : "none"
           }}>
             <span style={{ fontSize: 18 }}>{icon}</span>
             <span style={{ fontSize: 12, fontWeight: 800, marginTop: 2 }}>{label}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
       {tab === "orders" && (
         <div>
