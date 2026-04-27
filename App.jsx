@@ -1082,23 +1082,63 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
             </div>
           ) : (
             [...archivedOrders].reverse().map((order, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 16, padding: "16px 18px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", opacity: 0.85, border: "1.5px dashed #b0bec5" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>訂單編號：{order.orderNo || "—"}</div>
-                    <div style={{ fontWeight: 700, color: "#455a64", fontSize: 15 }}>{order.name} <span style={{ color: "#78909c", fontWeight: 400, fontSize: 13 }}>工號：{order.employeeId}</span></div>
-                    <div style={{ fontSize: 12, color: "#94a3b8" }}>🕐 {order.date}</div>
-                    <div style={{ fontSize: 11, color: "#b0bec5", marginTop: 2 }}>封存時間：{order.archivedAt}　封存者工號：{order.archivedBy}</div>
+              <div key={i} style={{ background: "white", borderRadius: 16, marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", overflow: "hidden", borderLeft: "5px solid #b0bec5", opacity: 0.9 }}>
+                {/* 頂部：訂單編號 + 已刪除標籤 */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "#eceff1" }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#546e7a" }}>#{order.orderNo || "—"}</div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    {order.stockReturned && <span style={{ background: "#e8f5e9", color: "#4CAF50", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20 }}>庫存已退回</span>}
+                    <span style={{ background: "#cfd8dc", color: "#455a64", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>已刪除</span>
                   </div>
-                  <span style={{ background: "#eceff1", color: "#607d8b", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>已封存</span>
                 </div>
-                <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 10 }}>
+
+                {/* 員工資訊 */}
+                <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", gap: 16, flexWrap: "wrap" }}>
+                  <div style={{ flex: 1, minWidth: 80 }}>
+                    <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>姓名</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#455a64" }}>{order.name}</div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 80 }}>
+                    <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>工號</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#455a64" }}>{order.employeeId}</div>
+                  </div>
+                  <div style={{ flex: 2, minWidth: 140 }}>
+                    <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>下單時間</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#78909c" }}>{order.date}</div>
+                  </div>
+                </div>
+
+                {/* 刪除資訊 */}
+                <div style={{ padding: "8px 16px", background: "#fafafa", borderBottom: "1px solid #f1f5f9", display: "flex", gap: 16, flexWrap: "wrap" }}>
+                  <div style={{ flex: 1, minWidth: 100 }}>
+                    <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>刪除者工號</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#e53935" }}>{order.archivedBy}</div>
+                  </div>
+                  <div style={{ flex: 2, minWidth: 140 }}>
+                    <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>刪除時間</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#78909c" }}>{order.archivedAt}</div>
+                  </div>
+                </div>
+
+                {/* 商品明細 */}
+                <div style={{ padding: "10px 16px" }}>
                   {order.items.map((item, j) => (
-                    <div key={j} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#78909c", padding: "2px 0" }}>
-                      <span>{item.name} × {item.qty}</span><span>${item.price * item.qty}</span>
+                    <div key={j} style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 0", borderBottom: j < order.items.length - 1 ? "1px solid #f1f5f9" : "none" }}>
+                      <div style={{ width: 56, height: 56, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                        {item.image
+                          ? <img src={item.image} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          : <GlassesPlaceholder name="" />}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#546e7a" }}>{item.name}</div>
+                        <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>數量：{item.qty} 件</div>
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "#90a4ae" }}>${item.price * item.qty}</div>
                     </div>
                   ))}
-                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8, fontWeight: 800, color: "#90a4ae", fontSize: 15 }}>總計 ${order.total}</div>
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10, paddingTop: 10, borderTop: "1px solid #f1f5f9" }}>
+                    <div style={{ fontWeight: 900, color: "#90a4ae", fontSize: 16 }}>總計 ${order.total}</div>
+                  </div>
                 </div>
               </div>
             ))
