@@ -10,9 +10,11 @@ function useStorage(key, defaultVal) {
   const [val, setVal] = useState(defaultVal);
   const [loaded, setLoaded] = useState(false);
   const dbKey = key.replace(/[:.]/g, "_");
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
+
     const load = async () => {
       try {
         const res = await fetch(`${FIREBASE_URL}/${dbKey}.json`, { cache: "no-store" });
@@ -28,8 +30,18 @@ function useStorage(key, defaultVal) {
         }
       }
     };
+
     load();
-    return () => { cancelled = true; };
+
+    // Poll every 10 seconds for real-time updates
+    intervalRef.current = setInterval(() => {
+      if (!cancelled) load();
+    }, 10000);
+
+    return () => {
+      cancelled = true;
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [dbKey]);
 
   const save = async (v) => {
@@ -503,6 +515,8 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
   const [archiveModal, setArchiveModal] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [orderFilter, setOrderFilter] = useState("全部");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedOrders, setSelectedOrders] = useState(new Set());
   const fileRef = useRef();
   const editFileRef = useRef();
 
@@ -768,7 +782,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
       </div>
       {tab === "orders" && (
         <div>
-          {/* 篩選器 + 清空按鈕 同一行 */}
+          {/* 篩選器 + 操作按鈕 */}
           <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
               <span style={{ fontSize: 12, color: "#94a3b8", marginRight: 2 }}>篩選：</span>
@@ -785,15 +799,22 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
               })}
             </div>
             {orders.length > 0 && (
-              <button onClick={() => setConfirmModal({
-                title: "確定清空所有訂單？",
-                message: "此操作將清除所有訂單紀錄（不影響商品庫存），確定繼續？",
-                onConfirm: () => { setOrders([]); setConfirmModal(null); }
-              })} style={{ ...btnStyle("#ef5350", true), fontSize: 11, padding: "4px 10px", flexShrink: 0 }}>
-                🗑 清空訂單
+              <button onClick={() => setSelectMode(!selectMode)}
+                style={{ ...btnStyle(selectMode ? "#1565C0" : "#78909c", !selectMode), fontSize: 11, padding: "4px 10px", flexShrink: 0 }}>
+                {selectMode ? "✕ 取消選取" : "☑ 選取刪除"}
               </button>
             )}
           </div>
+
+          {/* 選取模式工具列 */}
+          {selectMode && selectedOrders.size > 0 && (
+            <div style={{ background: "#fff3e0", borderRadius: 12, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10, border: "1.5px solid #FFB300" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#E65100", flex: 1 }}>已選取 {selectedOrders.size} 筆訂單</span>
+              <button onClick={() => {
+                setArchiveModal({ idx: null, inputId: "", error: "", isBulkDelete: true });
+              }} style={{ ...btnStyle("#ef5350"), fontSize: 12, padding: "6px 14px" }}>🗑 刪除選取</button>
+            </div>
+          )}
           {orders.length > 0 && (
             <button onClick={() => {
               const header = "訂單編號,日期,姓名,工號,商品,數量,總金額,狀態";
@@ -833,10 +854,22 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
             return filtered.map((order) => {
               const idx = order._idx;
               return (
-                <div key={idx} style={{ background: "white", borderRadius: 16, marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", overflow: "hidden", borderLeft: `5px solid ${statusColor[order.status || "待處理"]}` }}>
+                <div key={idx} style={{ background: "white", borderRadius: 16, marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", overflow: "hidden", borderLeft: `5px solid ${statusColor[order.status || "待處理"]}`, opacity: selectMode && !selectedOrders.has(idx) ? 0.7 : 1, transition: "opacity 0.2s" }}>
                   {/* 訂單頂部：編號 + 狀態 */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: statusBg[order.status || "待處理"] }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: statusColor[order.status || "待處理"], letterSpacing: 0.5 }}>#{order.orderNo || "—"}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      {selectMode && (
+                        <input type="checkbox" checked={selectedOrders.has(idx)}
+                          onChange={() => {
+                            const next = new Set(selectedOrders);
+                            next.has(idx) ? next.delete(idx) : next.add(idx);
+                            setSelectedOrders(next);
+                          }}
+                          style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#e53935" }}
+                        />
+                      )}
+                      <div style={{ fontSize: 13, fontWeight: 800, color: statusColor[order.status || "待處理"], letterSpacing: 0.5 }}>#{order.orderNo || "—"}</div>
+                    </div>
                     <select value={order.status || "待處理"} onChange={e => updateOrderStatus(idx, e.target.value)}
                       style={{ padding: "6px 12px", borderRadius: 20, border: `2px solid ${statusColor[order.status || "待處理"]}`, color: statusColor[order.status || "待處理"], fontWeight: 800, fontSize: 13, cursor: "pointer", outline: "none", background: "white", minWidth: 120 }}>
                       {["待處理", "備貨中", "已取消", "已完成訂單", "🗑 刪除此筆訂單"].map(s => (
@@ -1010,9 +1043,17 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
             salesMap[item.id].qty += item.qty;
           });
         });
-        const top3 = Object.values(salesMap).sort((a, b) => b.qty - a.qty).slice(0, 3);
-        const medals = ["🥇", "🥈", "🥉"];
-        const medalColors = ["#FFD700", "#C0C0C0", "#CD7F32"];
+        const sorted = Object.values(salesMap).sort((a, b) => b.qty - a.qty).slice(0, 5);
+        // Assign ranks handling ties
+        let rank = 1;
+        const top3 = [];
+        for (let i = 0; i < sorted.length; i++) {
+          if (i > 0 && sorted[i].qty < sorted[i-1].qty) rank = i + 1;
+          if (rank > 3) break;
+          top3.push({ ...sorted[i], rank });
+        }
+        const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
+        const medalColors = { 1: "#FFD700", 2: "#C0C0C0", 3: "#CD7F32" };
         return (
           <div>
             <div style={{ background: "linear-gradient(135deg, #1a2b3c, #2d4a6b)", borderRadius: 16, padding: "16px 20px", marginBottom: 20, color: "white" }}>
@@ -1026,8 +1067,8 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
               </div>
             ) : (
               top3.map((item, i) => (
-                <div key={item.name} style={{ display: "flex", alignItems: "center", gap: 16, background: "white", borderRadius: 16, padding: "16px 18px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: `2px solid ${medalColors[i]}22` }}>
-                  <div style={{ fontSize: 36, width: 44, textAlign: "center" }}>{medals[i]}</div>
+                <div key={item.name} style={{ display: "flex", alignItems: "center", gap: 16, background: "white", borderRadius: 16, padding: "16px 18px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: `2px solid ${medalColors[item.rank]}22` }}>
+                  <div style={{ fontSize: 36, width: 44, textAlign: "center" }}>{medals[item.rank]}</div>
                   <div style={{ width: 56, height: 56, borderRadius: 10, overflow: "hidden", flexShrink: 0 }}>
                     {item.image ? <img src={item.image} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <GlassesPlaceholder name="" />}
                   </div>
@@ -1036,7 +1077,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                     <div style={{ fontSize: 13, color: "#78909c", marginTop: 2 }}>累計銷售</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 28, fontWeight: 800, color: medalColors[i] }}>{item.qty}</div>
+                    <div style={{ fontSize: 28, fontWeight: 800, color: medalColors[item.rank] }}>{item.qty}</div>
                     <div style={{ fontSize: 12, color: "#94a3b8" }}>件</div>
                   </div>
                   {/* Progress bar */}
@@ -1052,10 +1093,10 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                   return (
                     <div key={item.name} style={{ marginBottom: 10 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#475569", marginBottom: 4 }}>
-                        <span>{medals[i]} {item.name}</span><span>{item.qty} 件</span>
+                        <span>{medals[item.rank]} {item.name}</span><span>{item.qty} 件</span>
                       </div>
                       <div style={{ background: "#e2e8f0", borderRadius: 99, height: 8, overflow: "hidden" }}>
-                        <div style={{ width: `${(item.qty / max) * 100}%`, height: "100%", background: `linear-gradient(90deg, ${medalColors[i]}, ${medalColors[i]}99)`, borderRadius: 99, transition: "width 0.5s" }} />
+                        <div style={{ width: `${(item.qty / max) * 100}%`, height: "100%", background: `linear-gradient(90deg, ${medalColors[item.rank]}, ${medalColors[item.rank]}99)`, borderRadius: 99, transition: "width 0.5s" }} />
                       </div>
                     </div>
                   );
@@ -1134,11 +1175,13 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
             <div style={{ textAlign: "center", marginBottom: 18 }}>
               <div style={{ fontSize: 40, marginBottom: 8 }}>{archiveModal.isCancelMode ? "⚠️" : "🗑"}</div>
               <h3 style={{ margin: 0, color: "#1a2b3c", fontSize: 18 }}>
-                {archiveModal.isCancelMode ? "確定取消此筆訂單？" : "確認刪除此筆訂單"}
+                {archiveModal.isCancelMode ? "確定取消此筆訂單？" : archiveModal.isBulkDelete ? `確定刪除 ${selectedOrders.size} 筆訂單？` : "確認刪除此筆訂單"}
               </h3>
               <p style={{ color: "#78909c", fontSize: 13, marginTop: 6, whiteSpace: "pre-line" }}>
                 {archiveModal.isCancelMode
                   ? `以下商品庫存將自動退回：\n${archiveModal.itemList}\n\n請輸入您的8碼工號確認身份`
+                  : archiveModal.isBulkDelete
+                  ? `選取的訂單將移至「刪除訂單紀錄」\n請輸入您的8碼工號確認身份`
                   : "此訂單將移至「刪除訂單紀錄」\n請輸入您的8碼工號確認身份"}
               </p>
             </div>
@@ -1155,7 +1198,19 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
               <button onClick={() => setArchiveModal(null)} style={{ ...btnStyle("#78909c", true), flex: 1 }}>取消</button>
               <button onClick={() => {
                 if (archiveModal.inputId.length !== 8) { setArchiveModal(m => ({ ...m, error: "請輸入完整8碼工號" })); return; }
-                if (archiveModal.isCancelMode) {
+                if (archiveModal.isBulkDelete) {
+                  const toDelete = [...selectedOrders];
+                  const now = new Date().toLocaleString("zh-TW");
+                  const newArchived = toDelete.map(i => ({
+                    ...orders[i],
+                    archivedAt: now,
+                    archivedBy: archiveModal.inputId.trim()
+                  }));
+                  setArchivedOrders([...archivedOrders, ...newArchived]);
+                  setOrders(orders.filter((_, i) => !selectedOrders.has(i)));
+                  setSelectedOrders(new Set());
+                  setSelectMode(false);
+                } else if (archiveModal.isCancelMode) {
                   const order = orders[archiveModal.idx];
                   const updatedProducts = products.map(p => {
                     const orderItem = order.items.find(item => item.id === p.id);
@@ -1281,10 +1336,17 @@ export default function App() {
   const [archivedOrders, setArchivedOrdersRaw, archLoaded] = useStorage("glasses:archived", []);
   const [adminPwd, setAdminPwdRaw, pwdLoaded] = useStorage("glasses:adminpwd", DEFAULT_ADMIN_PASSWORD);
   const [superPwd, setSuperPwdRaw, superPwdLoaded] = useStorage("glasses:superpwd", "HuaMei@Super2026");
-  const [view, setView] = useState("shop");
+  const [view, setView] = useState(() => {
+    try { return sessionStorage.getItem("glasses:adminView") === "admin" ? "admin" : "shop"; } catch { return "shop"; }
+  });
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [pwd, setPwd] = useState("");
   const [pwdErr, setPwdErr] = useState(false);
+
+  const switchView = (v) => {
+    setView(v);
+    try { sessionStorage.setItem("glasses:adminView", v); } catch {}
+  };
   const [logoClicks, setLogoClicks] = useState(0);
   const [showAdminBtn, setShowAdminBtn] = useState(true);
   const logoClickTimer = useRef(null);
@@ -1341,7 +1403,7 @@ export default function App() {
   };
 
   const enterAdmin = () => {
-    if (pwd === adminPwd) { setView("admin"); setShowPwdModal(false); setPwd(""); setPwdErr(false); }
+    if (pwd === adminPwd) { switchView("admin"); setShowPwdModal(false); setPwd(""); setPwdErr(false); }
     else setPwdErr(true);
   };
 
@@ -1366,8 +1428,8 @@ export default function App() {
           <div style={{ display: "flex", gap: 8 }}>
             {view === "admin" ? (
               <>
-                <button onClick={() => { setView("shop"); }} style={{ ...btnStyle("#2196F3", true), fontSize: 13 }}>← 員工購物頁</button>
-                <button onClick={() => { setView("shop"); }} style={{ ...btnStyle("#ef5350", true), fontSize: 13 }}>登出</button>
+                <button onClick={() => { switchView("shop"); }} style={{ ...btnStyle("#2196F3", true), fontSize: 13 }}>← 員工購物頁</button>
+                <button onClick={() => { switchView("shop"); }} style={{ ...btnStyle("#ef5350", true), fontSize: 13 }}>登出</button>
               </>
             ) : showAdminBtn ? (
               <button onClick={() => setShowPwdModal(true)} style={{ ...btnStyle("#455a64", true), fontSize: 13, display: "flex", alignItems: "center", gap: 5 }}>
