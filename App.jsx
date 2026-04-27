@@ -1108,7 +1108,10 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "#eceff1" }}>
                   <div style={{ fontSize: 13, fontWeight: 800, color: "#546e7a" }}>#{order.orderNo || "—"}</div>
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    {order.stockReturned && <span style={{ background: "#e8f5e9", color: "#4CAF50", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20 }}>庫存已退回</span>}
+                    {order.stockReturned
+                      ? <span style={{ background: "#e8f5e9", color: "#2e7d32", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, border: "1px solid #a5d6a7" }}>✅ 庫存已退回</span>
+                      : <span style={{ background: "#fff3e0", color: "#e65100", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, border: "1px solid #ffcc80" }}>⛔ 庫存未退回</span>
+                    }
                     <span style={{ background: "#cfd8dc", color: "#455a64", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>已刪除</span>
                   </div>
                 </div>
