@@ -511,7 +511,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
     if (newSuperPwd !== confirmSuperPwd) { setSuperPwdMsg("兩次密碼不一致"); return; }
     setSuperPwd(newSuperPwd);
     setNewSuperPwd(""); setConfirmSuperPwd("");
-    setSuperPwdMsg("✅ 超級密碼已更新！");
+    setSuperPwdMsg("✅ 授權密碼已更新！");
     setTimeout(() => { setSuperPwdMsg(""); setShowSuperPwdChange(false); }, 2000);
   };
 
@@ -627,33 +627,33 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a2b3c" }}>🔧 管理後台</h2>
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => { setShowSuperPwdChange(!showSuperPwdChange); setShowPwdChange(false); }} style={{ ...btnStyle("#c62828", true), fontSize: 12, padding: "6px 12px" }}>⭐ 超級密碼</button>
           <button onClick={() => { setShowPwdChange(!showPwdChange); setShowSuperPwdChange(false); }} style={{ ...btnStyle("#78909c", true), fontSize: 12, padding: "6px 12px" }}>🔑 修改密碼</button>
+          <button onClick={() => { setShowSuperPwdChange(!showSuperPwdChange); setShowPwdChange(false); }} style={{ ...btnStyle("#c62828", true), fontSize: 12, padding: "6px 12px" }}>⭐ 授權密碼</button>
         </div>
       </div>
 
       {showSuperPwdChange && (
         <div style={{ background: "white", borderRadius: 14, padding: "16px 18px", marginBottom: 18, border: "2px solid #ffcdd2", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-          <h4 style={{ margin: "0 0 6px", color: "#c62828", fontSize: 15 }}>⭐ 修改超級密碼</h4>
-          <p style={{ margin: "0 0 12px", fontSize: 12, color: "#78909c" }}>超級密碼專用於清除刪除訂單紀錄，只有您知道此密碼</p>
+          <h4 style={{ margin: "0 0 6px", color: "#c62828", fontSize: 15 }}>⭐ 修改授權密碼</h4>
+          <p style={{ margin: "0 0 12px", fontSize: 12, color: "#78909c" }}>僅供系統管理員使用。</p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
             <div style={{ flex: 1, minWidth: 140 }}>
-              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>現有超級密碼</label>
-              <input type="password" value={newProduct.currentSuperPwd || ""} onChange={e => setNewProduct(p => ({ ...p, currentSuperPwd: e.target.value }))} placeholder="請先輸入現有超級密碼"
+              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>現有授權密碼</label>
+              <input type="password" value={newProduct.currentSuperPwd || ""} onChange={e => setNewProduct(p => ({ ...p, currentSuperPwd: e.target.value }))} placeholder="請先輸入現有授權密碼"
                 style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #ffcdd2", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div style={{ flex: 1, minWidth: 140 }}>
-              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>新超級密碼（至少6碼）</label>
-              <input type="password" value={newSuperPwd} onChange={e => setNewSuperPwd(e.target.value)} placeholder="輸入新超級密碼"
+              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>新授權密碼（至少6碼）</label>
+              <input type="password" value={newSuperPwd} onChange={e => setNewSuperPwd(e.target.value)} placeholder="輸入新授權密碼"
                 style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #ffcdd2", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div style={{ flex: 1, minWidth: 140 }}>
-              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>確認新超級密碼</label>
+              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 4 }}>確認新授權密碼</label>
               <input type="password" value={confirmSuperPwd} onChange={e => setConfirmSuperPwd(e.target.value)} placeholder="再輸入一次"
                 style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #ffcdd2", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <button onClick={() => {
-              if (newProduct.currentSuperPwd !== superPwd) { setSuperPwdMsg("現有超級密碼錯誤"); return; }
+              if (newProduct.currentSuperPwd !== superPwd) { setSuperPwdMsg("現有授權密碼錯誤"); return; }
               saveSuperPwd();
               setNewProduct(p => ({ ...p, currentSuperPwd: "" }));
             }} style={{ ...btnStyle("#c62828"), padding: "8px 16px", fontSize: 13 }}>儲存</button>
@@ -1083,7 +1083,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                 error: "",
                 onConfirm: (pwd) => {
                   if (pwd !== superPwd) {
-                    setConfirmModal(m => ({ ...m, error: "超級密碼錯誤，請重試" }));
+                    setConfirmModal(m => ({ ...m, error: "授權密碼錯誤，請重試" }));
                     return;
                   }
                   setArchivedOrders([]);
