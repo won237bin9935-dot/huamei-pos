@@ -814,6 +814,18 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                       <div style={{ fontSize: 13, fontWeight: 600, color: "#475569" }}>{order.date}</div>
                     </div>
                   </div>
+                  {order.status === "已取消" && order.cancelledBy && (
+                    <div style={{ padding: "8px 16px", background: "#ffebee", borderTop: "1px solid #ffcdd2", display: "flex", gap: 16 }}>
+                      <div>
+                        <span style={{ fontSize: 11, color: "#e57373" }}>取消者工號：</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: "#c62828" }}>{order.cancelledBy}</span>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: 11, color: "#e57373" }}>取消時間：</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#c62828" }}>{order.cancelledAt}</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* 商品明細 */}
                   <div style={{ padding: "10px 16px" }}>
@@ -1085,7 +1097,12 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                   });
                   setProducts(updatedProducts);
                   const updated = [...orders];
-                  updated[archiveModal.idx] = { ...updated[archiveModal.idx], status: "已取消" };
+                  updated[archiveModal.idx] = { 
+                    ...updated[archiveModal.idx], 
+                    status: "已取消",
+                    cancelledBy: archiveModal.inputId.trim(),
+                    cancelledAt: new Date().toLocaleString("zh-TW")
+                  };
                   setOrders(updated);
                 } else {
                   archiveOrder(archiveModal.idx, archiveModal.inputId.trim());
