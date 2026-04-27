@@ -811,8 +811,17 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                   </div>
                   <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 10 }}>
                     {order.items.map((item, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#475569", padding: "2px 0" }}>
-                        <span>{item.name} × {item.qty}</span><span>${item.price * item.qty}</span>
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", borderBottom: "1px solid #f8fafc" }}>
+                        <div style={{ width: 48, height: 48, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#f1f5f9" }}>
+                          {item.image
+                            ? <img src={item.image} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : <GlassesPlaceholder name="" />}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2b3c" }}>{item.name}</div>
+                          <div style={{ fontSize: 12, color: "#94a3b8" }}>× {item.qty} 件</div>
+                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "#475569" }}>${item.price * item.qty}</span>
                       </div>
                     ))}
                     <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
