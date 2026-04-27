@@ -241,8 +241,8 @@ function EmployeeView({ products, onOrder }) {
           </div>
         </div>
 
-        <div style={{ background: "#fff8e1", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: "#795548", lineHeight: 1.8, borderLeft: "3px solid #FFC107" }}>
-          商品備齊後將主動通知您領取時間與地點，屆時請備妥現金付款，謝謝！
+        <div style={{ background: "#fff8e1", borderRadius: 10, padding: "12px 16px", fontSize: 14, color: "#795548", lineHeight: 1.9, borderLeft: "3px solid #FFC107" }}>
+          🙏 感謝您的購買！商品備齊後，我們將主動通知您領取時間與地點，屆時請以<span style={{ color: "#e53935", fontWeight: 800, textDecoration: "underline" }}>『現金』</span>付款，謝謝您的配合。
         </div>
       </div>
       <button onClick={() => setPage("shop")} style={{ ...btnStyle("#2196F3"), marginTop: 4, padding: "12px 32px", fontSize: 15 }}>繼續瀏覽</button>
@@ -427,10 +427,7 @@ function EmployeeView({ products, onOrder }) {
               <div style={{ borderTop: "1px solid #e2e8f0", marginTop: 8, paddingTop: 8, display: "flex", justifyContent: "space-between", fontWeight: 700, color: "#1a2b3c" }}>
                 <span>總計</span><span>${cartTotal}</span>
               </div>
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "#fff8e1", borderRadius: 8, fontSize: 12, color: "#795548", lineHeight: 1.7 }}>
-                🙏 感謝您的購買！商品備齊後，我們將主動通知您領取時間與地點，屆時請以現金付款，謝謝您的配合。
-              </div>
-              <div style={{ marginTop: 8, padding: "10px 12px", background: "#fff3e0", borderRadius: 8, fontSize: 12, color: "#bf360c", lineHeight: 1.7, borderLeft: "3px solid #FF6D00" }}>
+              <div style={{ marginTop: 12, padding: "12px 14px", background: "#fff3e0", borderRadius: 8, fontSize: 14, color: "#bf360c", lineHeight: 1.8, borderLeft: "3px solid #FF6D00" }}>
                 📌 本次活動為員工內部特賣出清，商品均以優惠價提供，售出後恕不提供保固、退換貨服務，敬請於購買前確認款式，謝謝您的理解與配合。
               </div>
             </div>
