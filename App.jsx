@@ -448,7 +448,7 @@ function EmployeeView({ products, onOrder }) {
           <button onClick={() => setPage("cart")} style={{ background: "linear-gradient(135deg, #1a2b3c, #2d4a6b)", color: "white", border: "none", borderRadius: 50, padding: "15px 32px", fontSize: 16, fontWeight: 800, cursor: "pointer", boxShadow: "0 8px 28px rgba(26,43,60,0.45)", display: "flex", alignItems: "center", gap: 12, whiteSpace: "nowrap", animation: "floatUp 0.3s ease" }}>
             <IconCart />
             <span style={{ background: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "2px 10px", fontSize: 14, fontWeight: 900 }}>{cartCount} 件</span>
-            <span style={{ fontWeight: 700, color: "#90caf9" }}>${cartTotal}</span>
+            <span style={{ fontWeight: 900, color: "#ff8a80" }}>${cartTotal}</span>
             <span>前往結帳 →</span>
           </button>
         </div>
@@ -710,16 +710,17 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
           ["inventory",<IconPackage />,"商品管理",    "#ffffff", "#c62828", "#e53935"],
         ].map(([key, icon, label, textColor, bgColor, activeBg]) => {
           const isInventory = key === "inventory";
+          const isActive = tab === key;
           return (
           <button key={key} onClick={() => setTab(key)} style={{
             flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
             padding: "12px 4px", borderRadius: 12,
-            border: `2.5px solid ${tab === key ? bgColor : isInventory ? bgColor : bgColor + "88"}`,
+            border: `2.5px solid ${isActive ? bgColor : isInventory ? bgColor : bgColor + "88"}`,
             cursor: "pointer", fontWeight: 700, transition: "all 0.2s",
-            background: tab === key ? bgColor : isInventory ? bgColor + "cc" : bgColor + "18",
-            color: textColor,
-            boxShadow: tab === key ? `0 4px 14px ${bgColor}44` : "none",
-            transform: tab === key ? "translateY(-2px)" : "none"
+            background: isActive ? bgColor : isInventory ? bgColor + "cc" : bgColor + "18",
+            color: isActive ? "#ffffff" : isInventory ? "#ffffff" : bgColor,
+            boxShadow: isActive ? `0 4px 14px ${bgColor}44` : "none",
+            transform: isActive ? "translateY(-2px)" : "none"
           }}>
             <span style={{ fontSize: 18 }}>{icon}</span>
             <span style={{ fontSize: 12, fontWeight: 800, marginTop: 2 }}>{label}</span>
