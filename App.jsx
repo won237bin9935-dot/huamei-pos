@@ -224,6 +224,8 @@ function EmployeeView({ products, onOrder }) {
 
   const [category, setCategory] = useState("adult"); // adult | kids
   const [heroIndex, setHeroIndex] = useState(0);
+  const [prevHeroIndex, setPrevHeroIndex] = useState(null);
+  const heroAnimTimerRef = useRef(null);
   const activeHeroDot = heroIndex;
 
   useEffect(() => {
@@ -233,17 +235,31 @@ function EmployeeView({ products, onOrder }) {
     });
   }, []);
 
+  const switchHeroSlide = (nextIndex) => {
+    if (!HERO_IMAGES.length || nextIndex === heroIndex) return;
+    if (heroAnimTimerRef.current) clearTimeout(heroAnimTimerRef.current);
+    setPrevHeroIndex(heroIndex);
+    setHeroIndex(nextIndex);
+    heroAnimTimerRef.current = setTimeout(() => setPrevHeroIndex(null), 850);
+  };
+
   useEffect(() => {
     if (!HERO_IMAGES.length) return;
     const timer = setInterval(() => {
-      setHeroIndex(prev => (prev + 1) % HERO_IMAGES.length);
+      switchHeroSlide((heroIndex + 1) % HERO_IMAGES.length);
     }, 3000);
 
     return () => clearInterval(timer);
+  }, [heroIndex]);
+
+  useEffect(() => {
+    return () => {
+      if (heroAnimTimerRef.current) clearTimeout(heroAnimTimerRef.current);
+    };
   }, []);
 
   const goHeroSlide = (i) => {
-    setHeroIndex(i);
+    switchHeroSlide(i);
   };
 
   const inStock = products.filter(p => getAvailableStock(p) > 0 || cart.find(c => c.id === p.id));
@@ -355,15 +371,28 @@ function EmployeeView({ products, onOrder }) {
               overflow: hidden;
               background: #f3f7f8;
             }
-            .hm-hero-track {
-              height: 100%;
-              display: flex;
-              will-change: transform;
-            }
-            .hm-hero-slide {
-              flex: 0 0 100%;
+            .hm-hero-stage {
+              position: relative;
+              width: 100%;
               height: 100%;
               overflow: hidden;
+              background: #f3f7f8;
+            }
+            .hm-hero-layer {
+              position: absolute;
+              inset: 0;
+              width: 100%;
+              height: 100%;
+              overflow: hidden;
+              will-change: transform, opacity;
+            }
+            .hm-hero-layer.incoming {
+              z-index: 2;
+              animation: hmHeroSlideIn 0.78s cubic-bezier(0.22, 1, 0.36, 1) both;
+            }
+            .hm-hero-layer.outgoing {
+              z-index: 1;
+              animation: hmHeroSlideOut 0.78s cubic-bezier(0.22, 1, 0.36, 1) both;
             }
             .hm-brand-hero-img {
               width: 100%;
@@ -372,6 +401,14 @@ function EmployeeView({ products, onOrder }) {
               object-position: center;
               display: block;
               transform: scale(1.015);
+            }
+             hmHeroSlideIn {
+              from { transform: translateX(100%); opacity: 1; }
+              to { transform: translateX(0); opacity: 1; }
+            }
+             hmHeroSlideOut {
+              from { transform: translateX(0); opacity: 1; }
+              to { transform: translateX(-24%); opacity: .92; }
             }
 .hm-hero-dots {
   position: absolute;
@@ -603,23 +640,25 @@ function EmployeeView({ products, onOrder }) {
           `}</style>
 
           <aside className="hm-brand-hero" aria-label="品牌情境圖">
-            <div
-              className="hm-hero-track"
-              style={{
-                transform: `translateX(-${heroIndex * 100}%)`,
-                transition: "transform 0.72s cubic-bezier(0.22, 1, 0.36, 1)"
-              }}
-            >
-              {HERO_IMAGES.map((img, i) => (
-                <div className="hm-hero-slide" key={`${img.src}-${i}`}>
+            <div className="hm-hero-stage">
+              {prevHeroIndex !== null && (
+                <div className="hm-hero-layer outgoing" key={`prev-${HERO_IMAGES[prevHeroIndex].src}-${prevHeroIndex}`}>
                   <img
-                    src={img.src}
+                    src={HERO_IMAGES[prevHeroIndex].src}
                     alt="華美光學員工特賣會"
                     className="hm-brand-hero-img"
-                    style={{ objectPosition: img.position }}
+                    style={{ objectPosition: HERO_IMAGES[prevHeroIndex].position }}
                   />
                 </div>
-              ))}
+              )}
+              <div className="hm-hero-layer incoming" key={`hero-${HERO_IMAGES[heroIndex].src}-${heroIndex}`}>
+                <img
+                  src={HERO_IMAGES[heroIndex].src}
+                  alt="華美光學員工特賣會"
+                  className="hm-brand-hero-img"
+                  style={{ objectPosition: HERO_IMAGES[heroIndex].position }}
+                />
+              </div>
             </div>
             <div className="hm-hero-dots">
               {HERO_IMAGES.map((_, i) => (
@@ -1855,6 +1894,7 @@ export default function App() {
           width: 100%;
           height: 100%;
           display: block;
+          z-index: 1;
         }
         .loading-hero-img {
           width: 100%;
@@ -1869,6 +1909,7 @@ export default function App() {
           inset: 0;
           pointer-events: none;
           background: linear-gradient(90deg, rgba(15,23,42,.18) 0%, rgba(15,23,42,.08) 46%, rgba(15,23,42,.04) 100%);
+          z-index: 2;
         }
         .loading-bar {
           position: absolute;
@@ -1880,7 +1921,8 @@ export default function App() {
           border-radius: 999px;
           overflow: hidden;
           background: rgba(15,23,42,.16);
-          z-index: 2;
+          z-index: 20;
+          border: 1px solid rgba(255,255,255,.35);
         }
         .loading-bar::after {
           content: "";
@@ -1912,12 +1954,17 @@ export default function App() {
             display: none;
           }
           .loading-bar {
-            display: block;
-            width: min(260px, 56vw);
-            height: 5px;
-            bottom: calc(44px + env(safe-area-inset-bottom));
-            background: rgba(15,23,42,.22);
-            box-shadow: 0 2px 10px rgba(15,23,42,.10);
+            display: block !important;
+            position: absolute;
+            left: 50%;
+            bottom: calc(72px + env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            width: min(320px, 68vw);
+            height: 7px;
+            border-radius: 999px;
+            background: rgba(15,23,42,.24);
+            box-shadow: 0 3px 14px rgba(15,23,42,.18), 0 0 0 1px rgba(255,255,255,.65);
+            z-index: 30;
           }
           .loading-bar::after {
             background: #0f172a;
