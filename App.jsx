@@ -13,7 +13,7 @@ const HERO_IMAGE_URLS = [
   "/hero-sale-2.jpg",
   "/hero-sale-3.png",
   "/hero-sale-4.png",
-  "/hero-sale-5.jpg""
+  "/hero-sale-5.jpg"
 ];
 
 function useStorage(key, defaultVal) {
