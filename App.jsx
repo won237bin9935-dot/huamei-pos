@@ -1786,6 +1786,15 @@ export default function App() {
   const [logoClicks, setLogoClicks] = useState(0);
   const [showAdminBtn, setShowAdminBtn] = useState(true);
   const logoClickTimer = useRef(null);
+  const [minLoadingDone, setMinLoadingDone] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinLoadingDone(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLogoClick = () => {
     const newCount = logoClicks + 1;
@@ -1843,7 +1852,7 @@ export default function App() {
     else setPwdErr(true);
   };
 
-  if (!prodLoaded || !ordLoaded || !pwdLoaded || !archLoaded || !superPwdLoaded) return (
+  if (!minLoadingDone || !prodLoaded || !ordLoaded || !pwdLoaded || !archLoaded || !superPwdLoaded) return (
     <div className="loading-screen">
       <style>{`
         .loading-screen {
@@ -1925,10 +1934,37 @@ export default function App() {
           100% { transform: translateX(260%); }
         }
         @media (max-width: 768px) {
-          .loading-hero-img { object-position: center; }
-          .loading-overlay { background: rgba(15,23,42,.38); }
-          .loading-title { letter-spacing: 4px; }
-          .loading-subtitle { letter-spacing: 5px; }
+          .loading-screen {
+            background: #f7f7f7;
+          }
+          .loading-hero-img {
+            object-fit: contain;
+            object-position: center center;
+            transform: none;
+            animation: none;
+          }
+          .loading-overlay {
+            background: rgba(255,255,255,.04);
+          }
+          .loading-content {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: max(24px, env(safe-area-inset-bottom));
+            padding: 0 24px;
+          }
+          .loading-title,
+          .loading-subtitle {
+            display: none;
+          }
+          .loading-bar {
+            width: min(260px, 52vw);
+            height: 4px;
+            background: rgba(15,23,42,.14);
+          }
+          .loading-bar::after {
+            background: #0f172a;
+          }
         }
       `}</style>
       <img src="/loading-hero.jpg" alt="華美光學員工特賣會" className="loading-hero-img" />
