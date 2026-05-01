@@ -247,7 +247,7 @@ function EmployeeView({ products, onOrder }) {
     if (!HERO_IMAGES.length) return;
     const timer = setInterval(() => {
       switchHeroSlide((heroIndex + 1) % HERO_IMAGES.length);
-    }, 3000);
+    }, 2000);
 
     return () => clearInterval(timer);
   }, [heroIndex]);
