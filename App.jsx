@@ -223,6 +223,16 @@ function EmployeeView({ products, onOrder }) {
   };
 
   const [category, setCategory] = useState("adult"); // adult | kids
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    if (!HERO_IMAGE_URLS.length) return;
+    const timer = setInterval(() => {
+      setHeroIndex(prev => (prev + 1) % HERO_IMAGE_URLS.length);
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const inStock = products.filter(p => getAvailableStock(p) > 0 || cart.find(c => c.id === p.id));
 
@@ -339,6 +349,11 @@ function EmployeeView({ products, onOrder }) {
               object-fit: cover;
               object-position: center;
               display: block;
+              animation: hmHeroFade 0.8s ease;
+            }
+            @keyframes hmHeroFade {
+              from { opacity: 0.35; transform: scale(1.015); }
+              to { opacity: 1; transform: scale(1); }
             }
 .hm-hero-dots {
   position: absolute;
@@ -570,7 +585,23 @@ function EmployeeView({ products, onOrder }) {
           `}</style>
 
           <aside className="hm-brand-hero" aria-label="品牌情境圖">
-            <img src={HERO_IMAGE_URLS[0]} alt="華美光學員工特賣會" className="hm-brand-hero-img" />
+            <img
+              key={HERO_IMAGE_URLS[heroIndex]}
+              src={HERO_IMAGE_URLS[heroIndex]}
+              alt="華美光學員工特賣會"
+              className="hm-brand-hero-img"
+            />
+            <div className="hm-hero-dots">
+              {HERO_IMAGE_URLS.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`hm-hero-dot ${i === heroIndex ? "active" : ""}`}
+                  onClick={() => setHeroIndex(i)}
+                  aria-label={`切換第 ${i + 1} 張圖片`}
+                />
+              ))}
+            </div>
           </aside>
 
           <section className="hm-products-panel">
