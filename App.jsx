@@ -6,8 +6,15 @@ const DEFAULT_ADMIN_PASSWORD = "HuaMei2026";
 
 const SAMPLE_PRODUCTS = [];
 
-// 員工購物頁左側品牌情境圖：請將圖片放在 public/hero-sale.png
-const HERO_IMAGE_URL = "/hero-sale.png";
+// 員工購物頁左側品牌情境圖：請將圖片放在 public 資料夾
+// 目前使用 public/hero-sale.png；若之後要輪播，請依序上傳 hero-sale-2.png、hero-sale-3.png...，再把路徑加入下方陣列
+const HERO_IMAGE_URLS = [
+  "/hero-sale.png"
+  // "/hero-sale-2.png",
+  // "/hero-sale-3.png",
+  // "/hero-sale-4.png",
+  // "/hero-sale-5.png"
+];
 
 function useStorage(key, defaultVal) {
   const [val, setVal] = useState(defaultVal);
@@ -333,7 +340,30 @@ function EmployeeView({ products, onOrder }) {
               object-position: center;
               display: block;
             }
-            .hm-products-panel {
+.hm-hero-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+.hm-hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255,255,255,.55);
+  cursor: pointer;
+  transition: all .2s ease;
+  padding: 0;
+}
+.hm-hero-dot.active {
+  width: 22px;
+  background: #ffffff;
+}
+.hm-products-panel {
               height: 100%;
               overflow: hidden;
               display: flex;
@@ -342,7 +372,7 @@ function EmployeeView({ products, onOrder }) {
             }
             .hm-products-fixed {
               flex: 0 0 auto;
-              padding: 28px clamp(24px, 3vw, 46px) 10px;
+              padding: 18px clamp(22px, 2.5vw, 38px) 8px;
               background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,.96) 100%);
               border-bottom: 1px solid rgba(226,232,240,.72);
               box-shadow: 0 8px 24px rgba(15,23,42,.04);
@@ -351,7 +381,7 @@ function EmployeeView({ products, onOrder }) {
             .hm-product-scroll {
               flex: 1 1 auto;
               overflow-y: auto;
-              padding: 22px clamp(24px, 3vw, 46px) 110px;
+              padding: 18px clamp(22px, 2.5vw, 38px) 110px;
             }
             .hm-product-scroll::-webkit-scrollbar { width: 10px; }
             .hm-product-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; border: 3px solid #f5f8fa; }
@@ -360,11 +390,11 @@ function EmployeeView({ products, onOrder }) {
               justify-content: space-between;
               align-items: flex-end;
               gap: 16px;
-              margin-bottom: 18px;
+              margin-bottom: 12px;
             }
             .hm-shop-eyebrow {
               color: #64748b;
-              font-size: 12px;
+              font-size: 11px;
               font-weight: 800;
               letter-spacing: 2px;
               text-transform: uppercase;
@@ -373,31 +403,31 @@ function EmployeeView({ products, onOrder }) {
             .hm-shop-title {
               margin: 0;
               color: #101827;
-              font-size: clamp(24px, 2.3vw, 34px);
+              font-size: clamp(22px, 2vw, 30px);
               font-weight: 950;
               letter-spacing: .5px;
             }
             .hm-shop-count {
               color: #64748b;
-              font-size: 13px;
+              font-size: 12px;
               white-space: nowrap;
               font-weight: 700;
             }
             .hm-category-tabs {
               display: grid;
               grid-template-columns: repeat(2, 1fr);
-              gap: 12px;
-              padding: 8px 0 8px;
+              gap: 10px;
+              padding: 4px 0 6px;
               margin-bottom: 0;
               background: transparent;
             }
             .hm-category-btn {
-              padding: 16px 12px;
-              border-radius: 18px;
+              padding: 12px 10px;
+              border-radius: 16px;
               border: 2px solid #e2e8f0;
               cursor: pointer;
               font-weight: 950;
-              font-size: 17px;
+              font-size: 15px;
               letter-spacing: 1px;
               transition: all .2s ease;
               background: #ffffff;
