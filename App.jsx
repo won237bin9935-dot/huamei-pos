@@ -1844,10 +1844,99 @@ export default function App() {
   };
 
   if (!prodLoaded || !ordLoaded || !pwdLoaded || !archLoaded || !superPwdLoaded) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #1a2b3c 0%, #2d4a6b 100%)" }}>
-      <div style={{ textAlign: "center" }}>
-        <div style={{ color: "white", fontSize: 36, fontWeight: 900, letterSpacing: 4, marginBottom: 8 }}>華美光學</div>
-        <div style={{ color: "#90caf9", fontSize: 20, fontWeight: 600, letterSpacing: 6 }}>員工特賣會</div>
+    <div className="loading-screen">
+      <style>{`
+        .loading-screen {
+          position: fixed;
+          inset: 0;
+          width: 100%;
+          height: 100vh;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #0f172a;
+          font-family: 'Noto Sans TC', 'PingFang TC', sans-serif;
+        }
+        .loading-hero-img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          transform: scale(1.02);
+          animation: loadingHeroZoom 5s ease-out forwards;
+        }
+        .loading-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, rgba(15,23,42,.66) 0%, rgba(15,23,42,.32) 46%, rgba(15,23,42,.18) 100%);
+        }
+        .loading-content {
+          position: relative;
+          z-index: 2;
+          text-align: center;
+          color: white;
+          padding: 24px;
+          animation: loadingFadeUp .9s ease both;
+        }
+        .loading-title {
+          font-size: clamp(30px, 4.5vw, 58px);
+          font-weight: 950;
+          letter-spacing: 6px;
+          text-shadow: 0 8px 26px rgba(0,0,0,.35);
+          margin-bottom: 12px;
+        }
+        .loading-subtitle {
+          font-size: clamp(15px, 1.7vw, 24px);
+          font-weight: 800;
+          letter-spacing: 8px;
+          color: rgba(255,255,255,.9);
+          margin-bottom: 26px;
+        }
+        .loading-bar {
+          width: min(300px, 62vw);
+          height: 4px;
+          border-radius: 999px;
+          overflow: hidden;
+          background: rgba(255,255,255,.25);
+          margin: 0 auto;
+        }
+        .loading-bar::after {
+          content: "";
+          display: block;
+          width: 42%;
+          height: 100%;
+          border-radius: inherit;
+          background: white;
+          animation: loadingBar 1.25s ease-in-out infinite;
+        }
+        @keyframes loadingHeroZoom {
+          from { transform: scale(1.05); }
+          to { transform: scale(1.0); }
+        }
+        @keyframes loadingFadeUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes loadingBar {
+          0% { transform: translateX(-110%); }
+          100% { transform: translateX(260%); }
+        }
+        @media (max-width: 768px) {
+          .loading-hero-img { object-position: center; }
+          .loading-overlay { background: rgba(15,23,42,.38); }
+          .loading-title { letter-spacing: 4px; }
+          .loading-subtitle { letter-spacing: 5px; }
+        }
+      `}</style>
+      <img src="/loading-hero.jpg" alt="華美光學員工特賣會" className="loading-hero-img" />
+      <div className="loading-overlay" />
+      <div className="loading-content">
+        <div className="loading-title">華美光學</div>
+        <div className="loading-subtitle">員工特賣會</div>
+        <div className="loading-bar" aria-label="載入中" />
       </div>
     </div>
   );
