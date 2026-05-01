@@ -7,7 +7,7 @@ const DEFAULT_ADMIN_PASSWORD = "HuaMei2026";
 const SAMPLE_PRODUCTS = [];
 
 // 員工購物頁左側品牌情境圖：請將圖片放在 public/hero-sale.png
-const HERO_IMAGE_URL = "/hero-sale.jpg";
+const HERO_IMAGE_URL = "/hero-sale.png";
 
 function useStorage(key, defaultVal) {
   const [val, setVal] = useState(defaultVal);
@@ -324,56 +324,37 @@ function EmployeeView({ products, onOrder }) {
               position: relative;
               height: 100%;
               overflow: hidden;
-              background: #111827;
+              background: #f3f7f8;
             }
-            .hm-brand-hero::before {
-              content: "";
-              position: absolute;
-              inset: 0;
-              background-image: linear-gradient(180deg, rgba(0,0,0,.42) 0%, rgba(0,0,0,.12) 45%, rgba(0,0,0,.56) 100%), url(${HERO_IMAGE_URL});
-              background-size: cover;
-              background-position: center;
-              transform: scale(1.01);
-            }
-            .hm-hero-content {
-              position: relative;
-              z-index: 1;
+            .hm-brand-hero-img {
+              width: 100%;
               height: 100%;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-              padding: clamp(28px, 4vw, 54px);
-              color: white;
-            }
-            .hm-hero-title {
-              font-family: Georgia, 'Times New Roman', serif;
-              font-size: clamp(32px, 4.2vw, 58px);
-              line-height: 1.06;
-              font-weight: 700;
-              letter-spacing: .5px;
-              text-shadow: 0 4px 16px rgba(0,0,0,.45);
-            }
-            .hm-hero-subtitle {
-              width: fit-content;
-              max-width: 86%;
-              padding: 14px 22px;
-              border-radius: 999px;
-              background: rgba(255,255,255,.72);
-              color: #1f2937;
-              font-size: clamp(16px, 1.55vw, 22px);
-              font-weight: 800;
-              letter-spacing: 4px;
-              backdrop-filter: blur(8px);
-              box-shadow: 0 12px 38px rgba(0,0,0,.18);
+              object-fit: cover;
+              object-position: center;
+              display: block;
             }
             .hm-products-panel {
               height: 100%;
-              overflow-y: auto;
-              padding: 34px clamp(24px, 3vw, 46px) 110px;
+              overflow: hidden;
+              display: flex;
+              flex-direction: column;
               background: linear-gradient(180deg, #ffffff 0%, #f5f8fa 100%);
             }
-            .hm-products-panel::-webkit-scrollbar { width: 10px; }
-            .hm-products-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; border: 3px solid #f5f8fa; }
+            .hm-products-fixed {
+              flex: 0 0 auto;
+              padding: 28px clamp(24px, 3vw, 46px) 10px;
+              background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,.96) 100%);
+              border-bottom: 1px solid rgba(226,232,240,.72);
+              box-shadow: 0 8px 24px rgba(15,23,42,.04);
+              z-index: 30;
+            }
+            .hm-product-scroll {
+              flex: 1 1 auto;
+              overflow-y: auto;
+              padding: 22px clamp(24px, 3vw, 46px) 110px;
+            }
+            .hm-product-scroll::-webkit-scrollbar { width: 10px; }
+            .hm-product-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; border: 3px solid #f5f8fa; }
             .hm-shop-heading {
               display: flex;
               justify-content: space-between;
@@ -403,16 +384,12 @@ function EmployeeView({ products, onOrder }) {
               font-weight: 700;
             }
             .hm-category-tabs {
-              position: sticky;
-              top: 0;
-              z-index: 20;
               display: grid;
               grid-template-columns: repeat(2, 1fr);
               gap: 12px;
-              padding: 8px 0 18px;
-              margin-bottom: 8px;
-              background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,.92) 74%, rgba(255,255,255,0) 100%);
-              backdrop-filter: blur(10px);
+              padding: 8px 0 8px;
+              margin-bottom: 0;
+              background: transparent;
             }
             .hm-category-btn {
               padding: 16px 12px;
@@ -540,19 +517,20 @@ function EmployeeView({ products, onOrder }) {
               .hm-brand-hero {
                 height: 360px;
               }
-              .hm-hero-content { padding: 28px; }
-              .hm-hero-subtitle { border-radius: 18px; letter-spacing: 2px; }
               .hm-products-panel {
                 height: auto;
                 overflow: visible;
-                padding: 24px 18px 110px;
               }
-              .hm-category-tabs { top: 70px; }
+              .hm-products-fixed { padding: 20px 18px 10px; }
+              .hm-product-scroll {
+                height: auto;
+                overflow: visible;
+                padding: 18px 18px 110px;
+              }
               .hm-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
             }
             @media (max-width: 560px) {
               .hm-brand-hero { height: 300px; }
-              .hm-hero-title { font-size: 30px; }
               .hm-shop-heading { align-items: flex-start; flex-direction: column; }
               .hm-product-grid { grid-template-columns: 1fr; }
               .hm-product-card { min-height: unset; }
@@ -562,13 +540,11 @@ function EmployeeView({ products, onOrder }) {
           `}</style>
 
           <aside className="hm-brand-hero" aria-label="品牌情境圖">
-            <div className="hm-hero-content">
-              <div className="hm-hero-title">Hwa Meei Optical<br/>Employee Special Sale</div>
-              <div className="hm-hero-subtitle">守護，更為卓越而生</div>
-            </div>
+            <img src={HERO_IMAGE_URL} alt="華美光學員工特賣會" className="hm-brand-hero-img" />
           </aside>
 
           <section className="hm-products-panel">
+            <div className="hm-products-fixed">
             {timerExpired && (
               <div style={{ background: "#ffebee", border: "1.5px solid #ef9a9a", borderRadius: 14, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 20 }}>⏰</span>
@@ -607,7 +583,10 @@ function EmployeeView({ products, onOrder }) {
               ))}
             </div>
 
-            <div className="hm-product-grid">
+            </div>
+
+            <div className="hm-product-scroll">
+              <div className="hm-product-grid">
               {products.filter(p => (p.category || "adult") === category).length === 0 && (
                 <div className="hm-empty">此分類目前無商品</div>
               )}
@@ -657,6 +636,7 @@ function EmployeeView({ products, onOrder }) {
                   </div>
                 );
               })}
+              </div>
             </div>
           </section>
         </div>
