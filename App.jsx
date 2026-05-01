@@ -1778,6 +1778,12 @@ export default function App() {
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [pwd, setPwd] = useState("");
   const [pwdErr, setPwdErr] = useState(false);
+  const [minLoadingDone, setMinLoadingDone] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMinLoadingDone(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const switchView = (v) => {
     setView(v);
@@ -1786,15 +1792,6 @@ export default function App() {
   const [logoClicks, setLogoClicks] = useState(0);
   const [showAdminBtn, setShowAdminBtn] = useState(true);
   const logoClickTimer = useRef(null);
-  const [minLoadingDone, setMinLoadingDone] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setMinLoadingDone(true);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleLogoClick = () => {
     const newCount = logoClicks + 1;
@@ -1864,53 +1861,41 @@ export default function App() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #0f172a;
+          background: #f7f7f5;
           font-family: 'Noto Sans TC', 'PingFang TC', sans-serif;
         }
-        .loading-hero-img {
+        .loading-picture {
           position: absolute;
           inset: 0;
           width: 100%;
           height: 100%;
+          display: block;
+        }
+        .loading-hero-img {
+          width: 100%;
+          height: 100%;
           object-fit: cover;
           object-position: center;
-          transform: scale(1.02);
+          display: block;
           animation: loadingHeroZoom 5s ease-out forwards;
         }
         .loading-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(90deg, rgba(15,23,42,.66) 0%, rgba(15,23,42,.32) 46%, rgba(15,23,42,.18) 100%);
-        }
-        .loading-content {
-          position: relative;
-          z-index: 2;
-          text-align: center;
-          color: white;
-          padding: 24px;
-          animation: loadingFadeUp .9s ease both;
-        }
-        .loading-title {
-          font-size: clamp(30px, 4.5vw, 58px);
-          font-weight: 950;
-          letter-spacing: 6px;
-          text-shadow: 0 8px 26px rgba(0,0,0,.35);
-          margin-bottom: 12px;
-        }
-        .loading-subtitle {
-          font-size: clamp(15px, 1.7vw, 24px);
-          font-weight: 800;
-          letter-spacing: 8px;
-          color: rgba(255,255,255,.9);
-          margin-bottom: 26px;
+          pointer-events: none;
+          background: linear-gradient(90deg, rgba(15,23,42,.18) 0%, rgba(15,23,42,.08) 46%, rgba(15,23,42,.04) 100%);
         }
         .loading-bar {
-          width: min(300px, 62vw);
+          position: absolute;
+          left: 50%;
+          bottom: clamp(36px, 7vh, 76px);
+          transform: translateX(-50%);
+          width: min(320px, 42vw);
           height: 4px;
           border-radius: 999px;
           overflow: hidden;
-          background: rgba(255,255,255,.25);
-          margin: 0 auto;
+          background: rgba(15,23,42,.16);
+          z-index: 2;
         }
         .loading-bar::after {
           content: "";
@@ -1918,16 +1903,12 @@ export default function App() {
           width: 42%;
           height: 100%;
           border-radius: inherit;
-          background: white;
+          background: #0f172a;
           animation: loadingBar 1.25s ease-in-out infinite;
         }
         @keyframes loadingHeroZoom {
-          from { transform: scale(1.05); }
-          to { transform: scale(1.0); }
-        }
-        @keyframes loadingFadeUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { transform: scale(1.02); }
+          to { transform: scale(1); }
         }
         @keyframes loadingBar {
           0% { transform: translateX(-110%); }
@@ -1935,45 +1916,29 @@ export default function App() {
         }
         @media (max-width: 768px) {
           .loading-screen {
-            background: #f7f7f7;
+            background: #f7f7f5;
           }
           .loading-hero-img {
             object-fit: contain;
             object-position: center center;
-            transform: none;
             animation: none;
           }
           .loading-overlay {
-            background: rgba(255,255,255,.04);
-          }
-          .loading-content {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: max(24px, env(safe-area-inset-bottom));
-            padding: 0 24px;
-          }
-          .loading-title,
-          .loading-subtitle {
             display: none;
           }
           .loading-bar {
-            width: min(260px, 52vw);
-            height: 4px;
-            background: rgba(15,23,42,.14);
-          }
-          .loading-bar::after {
-            background: #0f172a;
+            width: 48vw;
+            bottom: calc(28px + env(safe-area-inset-bottom));
+            background: rgba(15,23,42,.13);
           }
         }
       `}</style>
-      <img src="/loading-hero.jpg" alt="華美光學員工特賣會" className="loading-hero-img" />
+      <picture className="loading-picture">
+        <source media="(max-width: 768px)" srcSet="/loading-hero-mobile.jpg" />
+        <img src="/loading-hero.jpg" alt="華美光學員工特賣會" className="loading-hero-img" />
+      </picture>
       <div className="loading-overlay" />
-      <div className="loading-content">
-        <div className="loading-title">華美光學</div>
-        <div className="loading-subtitle">員工特賣會</div>
-        <div className="loading-bar" aria-label="載入中" />
-      </div>
+      <div className="loading-bar" aria-label="載入中" />
     </div>
   );
 
