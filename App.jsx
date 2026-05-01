@@ -10,10 +10,10 @@ const SAMPLE_PRODUCTS = [];
 // 目前使用 public/hero-sale.png；若之後要輪播，請依序上傳 hero-sale-2.png、hero-sale-3.png...，再把路徑加入下方陣列
 const HERO_IMAGES = [
   { src: "/hero-sale.png", position: "center center" },
-  { src: "/hero-sale-2.jpg", position: "65% center" },
-  { src: "/hero-sale-3.png", position: "60% center" },
+  { src: "/hero-sale-2.jpg", position: "60% center" },
+  { src: "/hero-sale-3.png", position: "58% center" },
   { src: "/hero-sale-4.png", position: "55% center" },
-  { src: "/hero-sale-5.jpg", position: "60% center" }
+  { src: "/hero-sale-5.jpg", position: "52% center" }
 ];
 
 function useStorage(key, defaultVal) {
@@ -226,9 +226,9 @@ function EmployeeView({ products, onOrder }) {
   const [heroIndex, setHeroIndex] = useState(0);
 
   useEffect(() => {
-    if (!HERO_IMAGE_URLS.length) return;
+    if (!HERO_IMAGES.length) return;
     const timer = setInterval(() => {
-      setHeroIndex(prev => (prev + 1) % HERO_IMAGE_URLS.length);
+      setHeroIndex(prev => (prev + 1) % HERO_IMAGES.length);
     }, 4000);
 
     return () => clearInterval(timer);
@@ -586,13 +586,14 @@ function EmployeeView({ products, onOrder }) {
 
           <aside className="hm-brand-hero" aria-label="品牌情境圖">
             <img
-              key={HERO_IMAGE_URLS[heroIndex]}
-              src={HERO_IMAGE_URLS[heroIndex]}
+              key={HERO_IMAGES[heroIndex].src}
+              src={HERO_IMAGES[heroIndex].src}
               alt="華美光學員工特賣會"
               className="hm-brand-hero-img"
+              style={{ objectPosition: HERO_IMAGES[heroIndex].position }}
             />
             <div className="hm-hero-dots">
-              {HERO_IMAGE_URLS.map((_, i) => (
+              {HERO_IMAGES.map((_, i) => (
                 <button
                   key={i}
                   type="button"
