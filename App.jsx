@@ -570,7 +570,7 @@ function EmployeeView({ products, onOrder }) {
           `}</style>
 
           <aside className="hm-brand-hero" aria-label="品牌情境圖">
-            <img src={HERO_IMAGE_URL} alt="華美光學員工特賣會" className="hm-brand-hero-img" />
+            <img src={HERO_IMAGE_URLS[0]} alt="華美光學員工特賣會" className="hm-brand-hero-img" />
           </aside>
 
           <section className="hm-products-panel">
