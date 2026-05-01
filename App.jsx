@@ -775,50 +775,379 @@ function EmployeeView({ products, onOrder }) {
       {/* Cart */}
       {page === "cart" && (
         <div>
+          <style>{`
+            .hm-cart-container {
+              width: min(1120px, calc(100vw - 48px));
+              margin: 0 auto;
+            }
+            .hm-cart-main {
+              display: grid;
+              grid-template-columns: minmax(0, 1.7fr) minmax(280px, .9fr);
+              gap: 20px;
+              align-items: stretch;
+            }
+            .hm-cart-left,
+            .hm-cart-summary {
+              border-radius: 24px;
+              box-shadow: 0 14px 36px rgba(15,23,42,.12);
+              overflow: hidden;
+            }
+            .hm-cart-left {
+              background: linear-gradient(135deg, #f8fbff 0%, #e6eef5 100%);
+              border: 1px solid rgba(203,213,225,.85);
+              padding: 22px;
+            }
+            .hm-cart-summary {
+              background: linear-gradient(135deg, #243b55 0%, #141e30 100%);
+              color: #fff;
+              padding: 24px;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              min-height: 260px;
+            }
+            .hm-cart-section-title {
+              margin: 0 0 16px;
+              font-size: 18px;
+              font-weight: 950;
+              color: #0f172a;
+              letter-spacing: .5px;
+            }
+            .hm-cart-summary .hm-cart-section-title {
+              color: #fff;
+              margin-bottom: 18px;
+            }
+            .hm-cart-item {
+              display: grid;
+              grid-template-columns: 180px minmax(0, 1fr) auto;
+              gap: 20px;
+              align-items: center;
+              background: rgba(255,255,255,.78);
+              border: 1px solid rgba(226,232,240,.95);
+              border-radius: 20px;
+              padding: 18px;
+              margin-bottom: 14px;
+              box-shadow: 0 8px 22px rgba(15,23,42,.07);
+            }
+            .hm-cart-imgbox {
+              width: 180px;
+              height: 132px;
+              border-radius: 18px;
+              overflow: hidden;
+              flex-shrink: 0;
+              background: #ffffff;
+              border: 1px solid rgba(226,232,240,.9);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .hm-cart-imgbox img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+              display: block;
+            }
+            .hm-cart-info-title {
+              font-size: 20px;
+              font-weight: 950;
+              color: #0f172a;
+              margin-bottom: 6px;
+            }
+            .hm-cart-info-sub {
+              font-size: 14px;
+              color: #64748b;
+              line-height: 1.6;
+            }
+            .hm-cart-line-price {
+              font-size: 22px;
+              font-weight: 950;
+              color: #111827;
+              margin-bottom: 12px;
+              text-align: right;
+            }
+            .hm-cart-actions {
+              display: flex;
+              align-items: center;
+              justify-content: flex-end;
+              gap: 8px;
+            }
+            .hm-cart-qty-btn {
+              width: 32px;
+              height: 32px;
+              border-radius: 999px;
+              border: 1.5px solid #cbd5e1;
+              background: #fff;
+              cursor: pointer;
+              font-weight: 900;
+              font-size: 17px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .hm-cart-qty-btn:disabled {
+              background: #f1f5f9;
+              color: #cbd5e1;
+              cursor: not-allowed;
+            }
+            .hm-cart-remove {
+              background: rgba(239,68,68,.08);
+              border: none;
+              cursor: pointer;
+              color: #ef5350;
+              padding: 7px;
+              border-radius: 999px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .hm-cart-summary-row {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 12px 0;
+              border-bottom: 1px solid rgba(255,255,255,.14);
+              color: rgba(255,255,255,.82);
+              font-size: 14px;
+              font-weight: 700;
+            }
+            .hm-cart-summary-total {
+              margin-top: 22px;
+            }
+            .hm-cart-summary-total-label {
+              color: rgba(255,255,255,.72);
+              font-size: 13px;
+              font-weight: 800;
+              letter-spacing: 1.5px;
+              margin-bottom: 8px;
+            }
+            .hm-cart-summary-total-value {
+              color: #fff;
+              font-size: 40px;
+              font-weight: 950;
+              line-height: 1;
+              letter-spacing: -.5px;
+            }
+            .hm-cart-cta {
+              width: 100%;
+              margin-top: 18px;
+              border: none;
+              border-radius: 18px;
+              padding: 16px 0;
+              font-size: 17px;
+              font-weight: 950;
+              letter-spacing: 1px;
+              color: #fff;
+              cursor: pointer;
+              background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+              box-shadow: 0 12px 28px rgba(17,24,39,.28);
+              transition: transform .2s ease, box-shadow .2s ease;
+            }
+            .hm-cart-cta:hover {
+              transform: translateY(-1px);
+              box-shadow: 0 16px 36px rgba(17,24,39,.34);
+            }
+            .hm-cart-empty {
+              text-align: center;
+              padding: 60px;
+              color: #94a3b8;
+            }
+            @media (max-width: 900px) {
+              .hm-cart-container {
+                width: 100%;
+                margin: 0;
+              }
+              .hm-cart-main {
+                display: block;
+              }
+              .hm-cart-left {
+                background: transparent;
+                border: none;
+                box-shadow: none;
+                border-radius: 0;
+                padding: 0;
+              }
+              .hm-cart-section-title {
+                display: none;
+              }
+              .hm-cart-item {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                background: white;
+                border-radius: 14px;
+                padding: 12px 16px;
+                margin-bottom: 10px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                border: none;
+              }
+              .hm-cart-imgbox {
+                width: 60px;
+                height: 60px;
+                border-radius: 10px;
+                border: none;
+                overflow: hidden;
+              }
+              .hm-cart-imgbox img {
+                object-fit: cover;
+              }
+              .hm-cart-info {
+                flex: 1;
+                min-width: 0;
+              }
+              .hm-cart-info-title {
+                font-weight: 700;
+                color: #1a2b3c;
+                font-size: 14px;
+                margin-bottom: 0;
+              }
+              .hm-cart-info-sub {
+                font-size: 13px;
+                color: #94a3b8;
+                line-height: 1.4;
+              }
+              .hm-cart-right-mobile {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              }
+              .hm-cart-line-price {
+                font-weight: 800;
+                color: #e53935;
+                margin-right: 4px;
+                margin-bottom: 0;
+                font-size: 16px;
+              }
+              .hm-cart-actions {
+                justify-content: flex-start;
+              }
+              .hm-cart-qty-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 16px;
+              }
+              .hm-cart-remove {
+                background: none;
+                padding: 4px;
+              }
+              .hm-cart-summary {
+                background: linear-gradient(135deg, #1a2b3c, #2d4a6b);
+                border-radius: 16px;
+                padding: 18px 20px;
+                margin-top: 16px;
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                min-height: unset;
+                box-shadow: none;
+              }
+              .hm-cart-summary-head,
+              .hm-cart-summary-row {
+                display: none;
+              }
+              .hm-cart-summary-total {
+                margin-top: 0;
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              }
+              .hm-cart-summary-total-label {
+                color: white;
+                font-weight: 600;
+                font-size: 16px;
+                margin-bottom: 0;
+                letter-spacing: 0;
+              }
+              .hm-cart-summary-total-value {
+                color: white;
+                font-size: 24px;
+                font-weight: 800;
+              }
+              .hm-cart-cta {
+                background: #e53935;
+                border-radius: 0;
+                box-shadow: none;
+                margin-top: 14px;
+                padding: 14px 0;
+                font-size: 16px;
+              }
+            }
+          `}</style>
           {cart.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 60, color: "#94a3b8" }}>
+            <div className="hm-cart-empty">
               <div style={{ fontSize: 48, marginBottom: 12 }}>🛒</div>
               <p>購物車是空的，快去挑選吧！</p>
               <button onClick={() => setPage("shop")} style={btnStyle("#2196F3")}>去逛逛</button>
             </div>
           ) : (
-            <div>
-              {cart.map(item => {
-                const product = products.find(p => p.id === item.id);
-                const maxStock = product ? product.stock + item.qty : item.qty;
-                return (
-                <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 14, background: "white", borderRadius: 14, padding: "12px 16px", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                  <div style={{ width: 60, height: 60, borderRadius: 10, overflow: "hidden", flexShrink: 0 }}>
-                    {item.image
-                      ? <img src={item.image} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      : <GlassesPlaceholder name="" />}
+            <div className="hm-cart-container">
+              <div className="hm-cart-main">
+                <section className="hm-cart-left">
+                  <h3 className="hm-cart-section-title">商品明細</h3>
+                  {cart.map(item => {
+                    const product = products.find(p => p.id === item.id);
+                    const maxStock = product ? product.stock + item.qty : item.qty;
+                    return (
+                      <div key={item.id} className="hm-cart-item">
+                        <div className="hm-cart-imgbox">
+                          {item.image
+                            ? <img src={item.image} alt={item.name} />
+                            : <GlassesPlaceholder name="" />}
+                        </div>
+                        <div className="hm-cart-info">
+                          <div className="hm-cart-info-title">{item.name}</div>
+                          <div className="hm-cart-info-sub">單價 ${item.price} × {item.qty}</div>
+                        </div>
+                        <div className="hm-cart-right-mobile">
+                          <div>
+                            <div className="hm-cart-line-price">${item.price * item.qty}</div>
+                            <div className="hm-cart-actions">
+                              <button
+                                className="hm-cart-qty-btn"
+                                onClick={() => {
+                                  if (item.qty <= 1) removeFromCart(item.id);
+                                  else setCart(prev => prev.map(c => c.id === item.id ? { ...c, qty: c.qty - 1 } : c));
+                                }}
+                                style={{ color: "#ef5350" }}
+                              >−</button>
+                              <span style={{ fontSize: 14, fontWeight: 700, minWidth: 20, textAlign: "center" }}>{item.qty}</span>
+                              <button
+                                className="hm-cart-qty-btn"
+                                disabled={item.qty >= maxStock}
+                                onClick={() => {
+                                  if (item.qty >= maxStock) return;
+                                  setCart(prev => prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c));
+                                }}
+                                style={{ color: item.qty >= maxStock ? "#cbd5e1" : "#1565C0" }}
+                              >+</button>
+                              <button onClick={() => removeFromCart(item.id)} className="hm-cart-remove"><IconTrash /></button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </section>
+                <aside className="hm-cart-summary">
+                  <div className="hm-cart-summary-head">
+                    <h3 className="hm-cart-section-title">訂單摘要</h3>
+                    <div className="hm-cart-summary-row">
+                      <span>商品件數</span>
+                      <strong>{cartCount} 件</strong>
+                    </div>
+                    <div className="hm-cart-summary-row">
+                      <span>商品款式</span>
+                      <strong>{cart.length} 款</strong>
+                    </div>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: "#1a2b3c", fontSize: 14 }}>{item.name}</div>
-                    <div style={{ fontSize: 13, color: "#94a3b8" }}>${item.price} × {item.qty}</div>
+                  <div className="hm-cart-summary-total">
+                    <div className="hm-cart-summary-total-label">合計</div>
+                    <div className="hm-cart-summary-total-value">${cartTotal}</div>
                   </div>
-                  <div style={{ fontWeight: 800, color: "#e53935", marginRight: 4 }}>${item.price * item.qty}</div>
-                  {/* 增減按鈕 */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <button onClick={() => {
-                      if (item.qty <= 1) removeFromCart(item.id);
-                      else setCart(prev => prev.map(c => c.id === item.id ? { ...c, qty: c.qty - 1 } : c));
-                    }} style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 800, fontSize: 16, color: "#ef5350", display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
-                    <span style={{ fontSize: 14, fontWeight: 700, minWidth: 20, textAlign: "center" }}>{item.qty}</span>
-                    <button onClick={() => {
-                      if (item.qty >= maxStock) return;
-                      setCart(prev => prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c));
-                    }} style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid #e2e8f0", background: item.qty >= maxStock ? "#f1f5f9" : "white", cursor: item.qty >= maxStock ? "not-allowed" : "pointer", fontWeight: 800, fontSize: 16, color: item.qty >= maxStock ? "#cbd5e1" : "#1565C0", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
-                  </div>
-                  <button onClick={() => removeFromCart(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ef5350", padding: 4 }}><IconTrash /></button>
-                </div>
-                );
-              })}
-              <div style={{ background: "linear-gradient(135deg, #1a2b3c, #2d4a6b)", borderRadius: 16, padding: "18px 20px", marginTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ color: "white", fontWeight: 600 }}>合計</span>
-                <span style={{ color: "white", fontSize: 24, fontWeight: 800 }}>${cartTotal}</span>
+                </aside>
               </div>
-              <button onClick={() => setPage("form")} style={{ ...btnStyle("#e53935"), width: "100%", marginTop: 14, padding: "14px 0", fontSize: 16 }}>前往填寫資料 →</button>
+              <button onClick={() => setPage("form")} className="hm-cart-cta">前往填寫資料 →</button>
             </div>
           )}
         </div>
@@ -1989,6 +2318,7 @@ export default function App() {
             <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCABKAHEDASIAAhEBAxEB/8QAHQAAAwEAAgMBAAAAAAAAAAAAAAcIBgUJAgMEAf/EAEMQAAECBQEFBQQECwkBAAAAAAECAwAEBQYRBxITITFBCFFhcYEUMpGhFSIjUhcYQlNWYnKCkpWxFiUzQ5Oio8HS4f/EABsBAAEFAQEAAAAAAAAAAAAAAAUAAwQGBwIB/8QAMxEAAQIEAwUHBAEFAAAAAAAAAQIDAAQFEQYhMRJBUWFxBxMiMoGRoRSx0fDBFSMzkuH/2gAMAwEAAhEDEQA/ALLggj4LgrFNoFImKtV5tuUk5dG044s49B3k8gBzjwkAXMdIQpxQQgXJ0EffHE1q5rcohArFdptPJOAJiaQ2c+piV9VtfbguJ56n2w47RqVnG8QcTDw8VfkDwTx7yYWVGt66LqmlKpdJqdWdJ+u420pz1UrkPUwMdqQCtlsXjSad2dOqa76ouhocMrjqTkPmLSb1e01XOeyJu+nBza2cqKgjP7ZGzjxziNNRbgoVbRt0es0+oJzjMtMJc/oYjNWhmqgbKzaqsAZ4T0sT8N5mMlUqRdFpzyVT8hVKNMp4oWttbSvMHhnl0jj+oPIzcRl6iJwwHR5vwyM7dXVKvhNjHYZBEpaSdoOq0pxmlXopdSkCQlM7jL7I/W++B/F4nlDg1T1ktuzqLLvyTzVXn51neyjLLgKSgjgtahyT8zE1ucaWgrva0U2ewhVJSbTK93tFXlI0PrutvvaGW64202px1aW0JGSpRwB6xlqvqTYVK3gnrtpCFtq2VtomA4sH9lOT8ojK99QbwveoKVVanMONOK+zkmCUso7glA5+ZyT3x9FB0m1GrbG/p9qT262QoKmCiXCgeRTvSnPpENVRUo2aReLax2eS0s2HKnNBHIEAf7K/EWBS9UdPKknMrd9JyVbIS8+GVE+CV4JjWSz7EyyHpd5t5tXJbagoH1EQtXNItSKMxv56050t4JJl1ImNkDmTulKx6xxNqXhddmVEO0aqTci42r67CiS2rvCkK4H4QhUVoNnUW/ecdO9nsnNNldNmgrqQoe6dPaOwOCFNonrNTb62aTU0NU6upTndhX2cxjmW88c9dnn5w2YJNupdTtJOUZvUabM018sTKdlQ+eYO8QQQQQ5EGCI27S+orl23WuiU90/Q1LcU2jB4PujgpflzA8OPWKd1hryra0yr1YbUUvNSpQyQAcOOENoPHuUoGIx0ktk3jqLSaG4TuX3i5MqP5tAK1+pAx5kQLqLiiUsp3xp3Z9T2G0PVaY8rdwOVhdR6gWt1MNHs+aJtXBJsXXdrSxTVnak5LOyZgA++vqEZHAcCefLGaip8lJ0+URKSEqzKy7YwhplAQlI8AI85ZlqWl25dhtLbTSQhCEjASkDAAjJ6qag0bT6iIn6mHH331FEtLNe86oDjx6AdTEtppuWb+5iq1Oq1DEk8Ei5ufCgaAfm2p/iNhHyVam0+rSTklU5JiclnBhbTyApJ9DEx/jP3B9I7f9mqZ7H+a3q95/Hy/wBsPfSvUKi6g0Rc9TA4xMMEImZV33mlEcOPVJ6GE1NMvHZSYVSwvVaQ2Jh5Fk8QQbHnbTrpzibu0VpJL2QtFfobv9zTT269ncXlcu4QSEjPFSeBx1HXvhVW9SpuvV6Ro0mUe0zjyWGt4rCQVHAyegiwtedM6zqMqmNSNal5GVkwtS2nUKVtrVjCuHgMQsZXszXJKzLUyxdVPbdaWFoUGV5SoHIMC5iSX3pKE+GNMoGMJUUxCZ2ZHfWOoOXC9hnz49YcGk+k9uWJT21iXbn6woZennUZIP3UA+6kfE9T3MKPTKJdak2UzLiVuobAcWOAKgOJhCaldo2WpFWmKXalMZqJYUW1zkwshoqB47KRxUOYzkQVUtqWQL5CMvYk6piObUUXcXvJOQ98gOA9hFAxhNUtLbavynrE3Lok6mnizPsoAcB7lfeT4H0xC2077SEvU6pL0266U1Ib9QQmbllEtpUTgbSTxA5cQTFCJIUkKSQQRkEdYSHGplBAzEczUjVMOTSVLu2vUEHI+oyPMH1EdfF10Kt2Ld71MnduWn5F0LaebJAUM5S4g9x5/wD2LI0Kv1u/bKanHiE1SUIYnkDqsDgseChx88jpGP7XlqNVOxm7nYaHtdJcSHFDmplagkjxwopPqYVvZFrzlN1O+hyo7irSzjez03jaS4k/BKx6wNaBlJnu9x/RGi1NTeKMOfXEWdavf08w6EZ26RYMEEEGoxyFH2tlup0ffDY+qqdYDn7OSf6gQn+xwlJ1SnCQCpNJdKeHL7RqKF13ojlwaTV+nsI230y4mGgE5JU0oOYHiQkj1iTdAbmRauqdJn5hwtyj6jKTJzwCHBgE+AVsq/dgRN+CbQo6ZRrOF0mcwtNyzXnG1lxyBHvYiLpiS+2Y5NHUSmNLK/Zk0xJaB93aLi9rHjwT8orQEEZHERgdZ9NJDUWissuTHsdRlCpUrMhO0BkcUKHVJ4eWImzjSnWilOsUzCNUYpdUQ/MeWxBPC+/93RC8bjRyg3lcVemqfZtVXTJlMtvX3faFtJKAoAAlIPHJ4DwMa38W/UD23c76j7nnvvaVYxnu2c5693jFCaM6a07TqhuMNPe2VKaIVNzRTjaxyQkdEjj4kknuAEy0i4pfjFhGq4ixnT5eSV9K4lxxWg1HU/jjCk/BVrp+nA/mj3/mD8FWun6cD+aPf+YcGreoSdPJCUqE1Q5yoScwstqeYWkBpfMBWe8Zx5RgKX2kqXVKlLU6RtGqvzUy6lpptLyCVKJwBExbcuhWypRv1MVCTqWIZ1j6hiWbUjPPZTu11MZC4NNtbKdQp+fm7yU/Ly8ut11pupPKUtKUkkAbPEkdIn+OyPZ3zGy82BtpwtB4jiOI8YmjUrs4VB2tPz9lTUr7G8ouexzLhQWSeOylWCCO7OMdSecNTciqwLdzBXCmNmVrW1P7LZOhAsOht8GJzjsE0xcmXdObccnCszKqXLl0r97a3ac58YQenXZvqgqzE7eU5KtSjSkuGUll7xTpBB2VKwAB0OM+HfFONoQ22lttIShICUpAwAByEO06XW3dSxa8Cu0GvyVQDUvKq29kkkjToDv5xl9YEIc0qulLiUqT9FTBwR1DZIPxAiN9DFuo1ethTOdo1BAOPungr5ExS/aruZqiaXzFLQ4ROVhaZdsA8Q2CFOHywNn96Eb2UqK5VNXJSd2MsUxh2ZcJHDJSUJHnlef3TDc4duaQkcvvE/CKTKYbm5l3yq2rc7Jt8nL0izYIIIMRkkfi0pWhSFpCkqGCDyIiHNeLCmLEvZ5ppKlUudUX5F3HJJPFB8Un5YMXJHA35aVGvS3n6LWpcONLBLbqeDjC+i0HoR8DyORESblu/RYajSLThPERok3trzbVkofYjmPteFH2dNY5Sq0+VtO6Z1DNUaG6lJl07KZlI91Klctscv1sDmeb6HEZEQvqhpVdFhzZcmZdU5TFK+yn5dJKPAL+4rwPoTHvsjWi/bUaRLS9TRUJNAwmWn0F1I8lZCx5BWIhMzymf7bw0i5VfBLFWvPUdxNlZ7O6++xGnQjLlpFwwRKSu09dW5wm3qKHce8S6U58tr/uOd0a16q1bvr6LvByTZlKiQ3KFlrYbl3eiSeKiFcsknBx0zEtNQZUoJB1irP4DrDDC3loFki9gbk9APf/ALD8u2gyFzW7O0OptByWm2i2rgCUnooeIOCD3iE92fdHZq0bkqVcuFptcxLOrl6dyUCjq8O4kcB1HGHrBD62ELWFkZiAcpWpuUk3ZNpVkOa/zbqMjxEEEYjWq+mLCsp+ppKF1B87mRaV+U4R7xH3UjifQdYnuh9pO+ZKXSzUJOk1Qp5vOMqbcV57BCfgmG3pxplWyqCFJwlUqrLGZl0jZvbM2v05D93xXccLed00S0KG9V65OtyzDY+qkn67quiUJ5qJ8PM8AYmCtdpW95uWWzT6fSKapQwHktKccT4jaVs/FJhXVGpXTe1cQZyYqFbqLytltABcUSeiUjl5ARFdqaALNi5iy0zs4mlL259YQgagG599B1z6Rymq981LUG7XKrNJLcun7KSlk8Q03ngPFRPEnvPcABUHZpsFyzbM9uqLezVarsvPJIwWW8fUb788cnxOOkZfQbQz6DmmrkvJll6fQAqUkc7SGFc9tfQrHQcQOfE4w/o9kpZYUXndTHGMMRyq5dNKpv8AiTa5GhtoBxG8nefkggggnGbwQQQQoUeLrbbrSmnUJcbWClSVDIUDzBEYG5NGtOa6tbsxbrUs+v8AzZNamSDnOcJOyT5gwwII4W2lYsoXiXKT8zJq2pdwoPIkfaEuns16fhwKM5X1DOdkzTePL/Dz8419saSae2683MU+3JdUw2QUvTKlPKCh1G2SAfICNzBDaZZpJuEiJ8ziOqzKdh2YURwuR721ggggh+AscbcNAolwyglK5S5SoMA5CH2wrB7x3Qt6x2edN59wLl5So03vErNkg/6gX8obUENLZbc8ybwRkqxPyItLPKSOAJt7aQoaV2ddOJN8OTDVVqKfzczN4T/xhJ+cMS2LUty2WS1QaNJ08EYUppsBSh4q5nkOZjmoISGG2/KkCOpytVCeGzMPKUOBJt7aQQQR6pslMs6UkghJwRDsDRnHtgjwye+CFCtH/9k=" alt="華美光學" style={{ width: 44, height: 44, objectFit: "contain" }} />
             <div style={{ display: "flex", alignItems: "baseline", gap: 12, whiteSpace: "nowrap" }}>
               <span style={{ fontWeight: 900, fontSize: "clamp(15px, 3.7vw, 19px)", color: "#1a2b3c" }}>華美光學</span>
+              <span style={{ fontWeight: 800, fontSize: "clamp(11px, 2.8vw, 14px)", color: "#1a2b3c", letterSpacing: 1 }}>員工特賣會</span>
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
