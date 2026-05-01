@@ -224,9 +224,7 @@ function EmployeeView({ products, onOrder }) {
 
   const [category, setCategory] = useState("adult"); // adult | kids
   const [heroIndex, setHeroIndex] = useState(0);
-  const [heroTransition, setHeroTransition] = useState(true);
-  const heroSlides = [...HERO_IMAGES, HERO_IMAGES[0]];
-  const activeHeroDot = heroIndex % HERO_IMAGES.length;
+  const activeHeroDot = heroIndex;
 
   useEffect(() => {
     HERO_IMAGES.forEach(img => {
@@ -238,25 +236,13 @@ function EmployeeView({ products, onOrder }) {
   useEffect(() => {
     if (!HERO_IMAGES.length) return;
     const timer = setInterval(() => {
-      setHeroTransition(true);
-      setHeroIndex(prev => prev + 1);
+      setHeroIndex(prev => (prev + 1) % HERO_IMAGES.length);
     }, 3000);
 
     return () => clearInterval(timer);
   }, []);
 
-  const handleHeroTransitionEnd = () => {
-    if (heroIndex === HERO_IMAGES.length) {
-      setHeroTransition(false);
-      setHeroIndex(0);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setHeroTransition(true));
-      });
-    }
-  };
-
   const goHeroSlide = (i) => {
-    setHeroTransition(true);
     setHeroIndex(i);
   };
 
@@ -619,13 +605,12 @@ function EmployeeView({ products, onOrder }) {
           <aside className="hm-brand-hero" aria-label="品牌情境圖">
             <div
               className="hm-hero-track"
-              onTransitionEnd={handleHeroTransitionEnd}
               style={{
                 transform: `translateX(-${heroIndex * 100}%)`,
-                transition: heroTransition ? "transform 0.72s cubic-bezier(0.22, 1, 0.36, 1)" : "none"
+                transition: "transform 0.72s cubic-bezier(0.22, 1, 0.36, 1)"
               }}
             >
-              {heroSlides.map((img, i) => (
+              {HERO_IMAGES.map((img, i) => (
                 <div className="hm-hero-slide" key={`${img.src}-${i}`}>
                   <img
                     src={img.src}
@@ -1927,9 +1912,15 @@ export default function App() {
             display: none;
           }
           .loading-bar {
-            width: 48vw;
-            bottom: calc(28px + env(safe-area-inset-bottom));
-            background: rgba(15,23,42,.13);
+            display: block;
+            width: min(260px, 56vw);
+            height: 5px;
+            bottom: calc(44px + env(safe-area-inset-bottom));
+            background: rgba(15,23,42,.22);
+            box-shadow: 0 2px 10px rgba(15,23,42,.10);
+          }
+          .loading-bar::after {
+            background: #0f172a;
           }
         }
       `}</style>
