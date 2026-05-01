@@ -224,15 +224,41 @@ function EmployeeView({ products, onOrder }) {
 
   const [category, setCategory] = useState("adult"); // adult | kids
   const [heroIndex, setHeroIndex] = useState(0);
+  const [heroTransition, setHeroTransition] = useState(true);
+  const heroSlides = [...HERO_IMAGES, HERO_IMAGES[0]];
+  const activeHeroDot = heroIndex % HERO_IMAGES.length;
+
+  useEffect(() => {
+    HERO_IMAGES.forEach(img => {
+      const preload = new Image();
+      preload.src = img.src;
+    });
+  }, []);
 
   useEffect(() => {
     if (!HERO_IMAGES.length) return;
     const timer = setInterval(() => {
-      setHeroIndex(prev => (prev + 1) % HERO_IMAGES.length);
-    }, 4000);
+      setHeroTransition(true);
+      setHeroIndex(prev => prev + 1);
+    }, 3000);
 
     return () => clearInterval(timer);
   }, []);
+
+  const handleHeroTransitionEnd = () => {
+    if (heroIndex === HERO_IMAGES.length) {
+      setHeroTransition(false);
+      setHeroIndex(0);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setHeroTransition(true));
+      });
+    }
+  };
+
+  const goHeroSlide = (i) => {
+    setHeroTransition(true);
+    setHeroIndex(i);
+  };
 
   const inStock = products.filter(p => getAvailableStock(p) > 0 || cart.find(c => c.id === p.id));
 
@@ -343,17 +369,23 @@ function EmployeeView({ products, onOrder }) {
               overflow: hidden;
               background: #f3f7f8;
             }
+            .hm-hero-track {
+              height: 100%;
+              display: flex;
+              will-change: transform;
+            }
+            .hm-hero-slide {
+              flex: 0 0 100%;
+              height: 100%;
+              overflow: hidden;
+            }
             .hm-brand-hero-img {
               width: 100%;
               height: 100%;
               object-fit: cover;
               object-position: center;
               display: block;
-              animation: hmHeroFade 0.8s ease;
-            }
-            @keyframes hmHeroFade {
-              from { opacity: 0.35; transform: scale(1.015); }
-              to { opacity: 1; transform: scale(1); }
+              transform: scale(1.015);
             }
 .hm-hero-dots {
   position: absolute;
@@ -585,20 +617,32 @@ function EmployeeView({ products, onOrder }) {
           `}</style>
 
           <aside className="hm-brand-hero" aria-label="品牌情境圖">
-            <img
-              key={HERO_IMAGES[heroIndex].src}
-              src={HERO_IMAGES[heroIndex].src}
-              alt="華美光學員工特賣會"
-              className="hm-brand-hero-img"
-              style={{ objectPosition: HERO_IMAGES[heroIndex].position }}
-            />
+            <div
+              className="hm-hero-track"
+              onTransitionEnd={handleHeroTransitionEnd}
+              style={{
+                transform: `translateX(-${heroIndex * 100}%)`,
+                transition: heroTransition ? "transform 0.72s cubic-bezier(0.22, 1, 0.36, 1)" : "none"
+              }}
+            >
+              {heroSlides.map((img, i) => (
+                <div className="hm-hero-slide" key={`${img.src}-${i}`}>
+                  <img
+                    src={img.src}
+                    alt="華美光學員工特賣會"
+                    className="hm-brand-hero-img"
+                    style={{ objectPosition: img.position }}
+                  />
+                </div>
+              ))}
+            </div>
             <div className="hm-hero-dots">
               {HERO_IMAGES.map((_, i) => (
                 <button
                   key={i}
                   type="button"
-                  className={`hm-hero-dot ${i === heroIndex ? "active" : ""}`}
-                  onClick={() => setHeroIndex(i)}
+                  className={`hm-hero-dot ${i === activeHeroDot ? "active" : ""}`}
+                  onClick={() => goHeroSlide(i)}
                   aria-label={`切換第 ${i + 1} 張圖片`}
                 />
               ))}
