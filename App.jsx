@@ -505,7 +505,7 @@ function EmployeeView({ products, onOrder }) {
               box-shadow: 0 5px 18px rgba(15,23,42,.05);
             }
             .hm-category-btn.active-adult { background: #111827; border-color: #111827; color: #fff; box-shadow: 0 12px 26px rgba(17,24,39,.24); }
-            .hm-category-btn.active-kids { background: #c62828; border-color: #c62828; color: #fff; box-shadow: 0 12px 26px rgba(198,40,40,.22); }
+            .hm-category-btn.active-kids { background: #111827; border-color: #111827; color: #fff; box-shadow: 0 12px 26px rgba(17,24,39,.24); }
             .hm-product-grid {
               display: grid;
               grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
