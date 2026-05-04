@@ -15,7 +15,9 @@ const HERO_IMAGES = [
   { src: "/hero-sale-2.jpg", position: "60% center" },
   { src: "/hero-sale-3.png", position: "58% center" },
   { src: "/hero-sale-4.png", position: "55% center" },
-  { src: "/hero-sale-5.jpg", position: "52% center" }
+  { src: "/hero-sale-5.jpg", position: "52% center" },
+
+  { src: "/hero-sale-9.png", position: "center center" } // 新增最後一張
 ];
 
 function useStorage(key, defaultVal) {
