@@ -9,6 +9,8 @@ const SAMPLE_PRODUCTS = [];
 // 員工購物頁左側品牌情境圖：請將圖片放在 public 資料夾
 // 目前使用 public/hero-sale.png；若之後要輪播，請依序上傳 hero-sale-2.png、hero-sale-3.png...，再把路徑加入下方陣列
 const HERO_IMAGES = [
+  { src: "/hero-sale-6.png", position: "center center" }, // 新增第一張
+
   { src: "/hero-sale.png", position: "center center" },
   { src: "/hero-sale-2.jpg", position: "60% center" },
   { src: "/hero-sale-3.png", position: "58% center" },
