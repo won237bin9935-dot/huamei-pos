@@ -9,7 +9,7 @@ const SAMPLE_PRODUCTS = [];
 // 員工購物頁左側品牌情境圖：請將圖片放在 public 資料夾
 // 目前使用 public/hero-sale.png；若之後要輪播，請依序上傳 hero-sale-2.png、hero-sale-3.png...，再把路徑加入下方陣列
 const HERO_IMAGES = [
-  { src: "/hero-sale-10.png", position: "center center" }, // 新增第一張
+  { src: "/hero-sale-10.png", position: "center center", mobilePosition: "72% 52%" }, // 新增第一張
 
   { src: "/hero-sale.png", position: "center center" },
   { src: "/hero-sale-2.jpg", position: "60% center" },
@@ -17,7 +17,7 @@ const HERO_IMAGES = [
   { src: "/hero-sale-4.png", position: "55% center" },
   { src: "/hero-sale-5.jpg", position: "52% center" },
 
-  { src: "/hero-sale-7.png",  position: "80% 50%" } // 新增最後一張
+  { src: "/hero-sale-7.png",  position: "80% 50%", mobilePosition: "66% 46%" } // 新增最後一張
 ];
 
 function useStorage(key, defaultVal) {
@@ -227,6 +227,7 @@ function EmployeeView({ products, onOrder }) {
   };
 
   const [category, setCategory] = useState("adult"); // adult | kids
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" ? window.innerWidth <= 768 : false);
   const [heroIndex, setHeroIndex] = useState(0);
   const [prevHeroIndex, setPrevHeroIndex] = useState(null);
   const heroAnimTimerRef = useRef(null);
@@ -237,6 +238,13 @@ function EmployeeView({ products, onOrder }) {
       const preload = new Image();
       preload.src = img.src;
     });
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const switchHeroSlide = (nextIndex) => {
@@ -651,7 +659,7 @@ function EmployeeView({ products, onOrder }) {
                     src={HERO_IMAGES[prevHeroIndex].src}
                     alt="華美光學員工特賣會"
                     className="hm-brand-hero-img"
-                    style={{ objectPosition: HERO_IMAGES[prevHeroIndex].position }}
+                    style={{ objectPosition: isMobile ? (HERO_IMAGES[prevHeroIndex].mobilePosition || HERO_IMAGES[prevHeroIndex].position) : HERO_IMAGES[prevHeroIndex].position }}
                   />
                 </div>
               )}
@@ -660,7 +668,7 @@ function EmployeeView({ products, onOrder }) {
                   src={HERO_IMAGES[heroIndex].src}
                   alt="華美光學員工特賣會"
                   className="hm-brand-hero-img"
-                  style={{ objectPosition: HERO_IMAGES[heroIndex].position }}
+                  style={{ objectPosition: isMobile ? (HERO_IMAGES[heroIndex].mobilePosition || HERO_IMAGES[heroIndex].position) : HERO_IMAGES[heroIndex].position }}
                 />
               </div>
             </div>
