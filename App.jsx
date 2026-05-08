@@ -765,7 +765,12 @@ function EmployeeView({ products, onOrder }) {
                       <div className="hm-product-name">{p.name}</div>
                       <div className="hm-product-desc">{p.description || ""}</div>
                       <div className="hm-product-meta">
-                        <span className="hm-product-price">${p.price}</span>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          {p.originalPrice && (
+                            <span style={{ fontSize: 12, color: "#b0bec5", textDecoration: "line-through", fontWeight: 500, letterSpacing: 0 }}>原價 ${p.originalPrice}</span>
+                          )}
+                          <span className="hm-product-price">${p.price}</span>
+                        </div>
                         <span className="hm-product-stock" style={{ color: isLow ? "#ff7043" : "#64748b" }}>剩 {availableStock} 件{isLow ? " ⚠️" : ""}</span>
                       </div>
                       {p.stock > 0 && (
@@ -1301,7 +1306,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
   const [tab, setTab] = useState("orders");
   const [editingProduct, setEditingProduct] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 100, stock: 1, image: null });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 100, originalPrice: "", stock: 1, image: null });
   const [showPwdChange, setShowPwdChange] = useState(false);
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
@@ -1350,14 +1355,14 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
 
   const addProduct = () => {
     if (!newProduct.name.trim()) return;
-    const p = { ...newProduct, id: Date.now(), price: Number(newProduct.price), stock: Number(newProduct.stock) };
+    const p = { ...newProduct, id: Date.now(), price: Number(newProduct.price), originalPrice: newProduct.originalPrice ? Number(newProduct.originalPrice) : null, stock: Number(newProduct.stock) };
     setProducts([...products, p]);
-    setNewProduct({ name: "", description: "", price: 100, stock: 1, image: null });
+    setNewProduct({ name: "", description: "", price: 100, originalPrice: "", stock: 1, image: null });
     setShowAddForm(false);
   };
 
   const saveEdit = () => {
-    setProducts(products.map(p => p.id === editingProduct.id ? { ...editingProduct, price: Number(editingProduct.price), stock: Number(editingProduct.stock) } : p));
+    setProducts(products.map(p => p.id === editingProduct.id ? { ...editingProduct, price: Number(editingProduct.price), originalPrice: editingProduct.originalPrice ? Number(editingProduct.originalPrice) : null, stock: Number(editingProduct.stock) } : p));
     setEditingProduct(null);
   };
 
@@ -1726,6 +1731,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                   { label: "說明", key: "description", placeholder: "經典黑框" },
                   { label: "價格", key: "price", placeholder: "100", type: "number" },
                   { label: "庫存", key: "stock", placeholder: "5", type: "number" },
+                  { label: "原價", key: "originalPrice", placeholder: "1200", type: "number" },
                 ].map(f => (
                   <div key={f.key}>
                     <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>{f.label}</label>
@@ -2127,6 +2133,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
               { label: "說明", key: "description" },
               { label: "價格", key: "price", type: "number" },
               { label: "庫存數量", key: "stock", type: "number" },
+              { label: "原價", key: "originalPrice", type: "number" },
             ].map(f => (
               <div key={f.key} style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>{f.label}</label>
