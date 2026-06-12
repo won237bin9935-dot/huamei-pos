@@ -156,6 +156,7 @@ function EmployeeView({ products, onOrder }) {
   };
   const [page, setPage] = useState("shop");
   const [form, setForm] = useState({ name: "", employeeId: "" });
+  const [agreed, setAgreed] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
   const [timerExpired, setTimerExpired] = useState(false);
@@ -1242,14 +1243,18 @@ function EmployeeView({ products, onOrder }) {
               <div style={{ borderTop: "1px solid #e2e8f0", marginTop: 8, paddingTop: 8, display: "flex", justifyContent: "space-between", fontWeight: 700, color: "#1a2b3c" }}>
                 <span>總計</span><span>${cartTotal}</span>
               </div>
-              <div style={{ marginTop: 12, padding: "12px 14px", background: "#fff3e0", borderRadius: 8, fontSize: 14, color: "#bf360c", lineHeight: 1.9, borderLeft: "3px solid #FF6D00" }}>
-                📌 本次活動為員工內部特賣出清，商品均以優惠價提供，<span style={{ fontWeight: 900, textDecoration: "underline", fontSize: 16, color: "#e53935" }}>「售出後恕不提供保固、退換貨服務」</span>，敬請於購買前確認款式，謝謝您的理解與配合。
+              <div style={{ marginTop: 12, padding: "12px 14px", background: "#fff3e0", borderRadius: 8, fontSize: 16, color: "#bf360c", lineHeight: 2, borderLeft: "3px solid #FF6D00" }}>
+                📌 本次活動為員工內部特賣出清，商品均以優惠價提供，<span style={{ fontWeight: 900, textDecoration: "underline", fontSize: 18, color: "#e53935" }}>「售出後恕不提供保固、退換貨服務」</span>，敬請於購買前確認款式，謝謝您的理解與配合。
               </div>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, cursor: "pointer", fontSize: 15, color: "#1a2b3c", fontWeight: 600 }}>
+                <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#e53935" }} />
+                我已閱讀並了解本次活動售出後不提供保固、退換貨服務
+              </label>
             </div>
             <button
               onClick={submitOrder}
-              disabled={!form.name.trim() || form.employeeId.length !== 8 || submitting}
-              style={{ ...btnStyle("#e53935"), width: "100%", padding: "14px 0", fontSize: 16, opacity: (!form.name.trim() || form.employeeId.length !== 8 || submitting) ? 0.5 : 1, cursor: (!form.name.trim() || form.employeeId.length !== 8 || submitting) ? "not-allowed" : "pointer" }}>
+              disabled={!form.name.trim() || form.employeeId.length !== 8 || submitting || !agreed}
+              style={{ ...btnStyle("#e53935"), width: "100%", padding: "14px 0", fontSize: 16, opacity: (!form.name.trim() || form.employeeId.length !== 8 || submitting || !agreed) ? 0.5 : 1, cursor: (!form.name.trim() || form.employeeId.length !== 8 || submitting || !agreed) ? "not-allowed" : "pointer" }}>
               {submitting ? "送出中..." : "確認送出訂單"}
             </button>
           </div>
