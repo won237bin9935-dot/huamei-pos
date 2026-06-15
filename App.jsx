@@ -720,11 +720,11 @@ function EmployeeView({ products, onOrder }) {
             </div>
 
             <div className="hm-category-tabs">
-              {[ ["adult", "成人款式"], ["kids", "兒童款式"] ].map(([key, label]) => (
+              {[ ["adult", "成人款式"], ["kids", "兒童款式"], ["case", "眼鏡盒"] ].map(([key, label]) => (
                 <button
                   key={key}
                   onClick={() => setCategory(key)}
-                  className={`hm-category-btn ${category === key ? (key === "adult" ? "active-adult" : "active-kids") : ""}`}
+                  className={`hm-category-btn ${category === key ? (key === "adult" ? "active-adult" : key === "kids" ? "active-kids" : "active-adult") : ""}`}
                 >
                   {label}
                 </button>
@@ -1725,7 +1725,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>商品分類 *</label>
                 <div style={{ display: "flex", gap: 8 }}>
-                  {[["adult", "成人款式", "#1565C0", "#e3f2fd"], ["kids", "兒童款式", "#c62828", "#fce4ec"]].map(([val, lbl, activeColor, activeBg]) => (
+                  {[["adult", "成人款式", "#1565C0", "#e3f2fd"], ["kids", "兒童款式", "#c62828", "#fce4ec"], ["case", "眼鏡盒", "#2e7d32", "#e8f5e9"]].map(([val, lbl, activeColor, activeBg]) => (
                     <button key={val} onClick={() => setNewProduct(p => ({ ...p, category: val }))} style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: `2px solid ${(newProduct.category || "adult") === val ? activeColor : "#e2e8f0"}`, background: (newProduct.category || "adult") === val ? activeBg : "white", color: (newProduct.category || "adult") === val ? activeColor : "#94a3b8", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>{lbl}</button>
                   ))}
                 </div>
@@ -1788,7 +1788,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                 <div style={{ display: "flex", gap: 10, marginTop: 2 }}>
                   <span style={{ fontSize: 12, fontWeight: 700, color: "#e53935" }}>${p.price}</span>
                   <span style={{ fontSize: 12, color: p.stock <= 3 ? "#ff7043" : "#78909c" }}>庫存 {p.stock}{p.stock <= 3 && p.stock > 0 ? " ⚠️" : ""}</span>
-                  <span style={{ fontSize: 11, color: p.category === "kids" ? "#c62828" : "#1565C0", fontWeight: 600 }}>{p.category === "kids" ? "兒童" : "成人"}</span>
+                  <span style={{ fontSize: 11, color: p.category === "kids" ? "#c62828" : p.category === "case" ? "#2e7d32" : "#1565C0", fontWeight: 600 }}>{p.category === "kids" ? "兒童" : p.category === "case" ? "眼鏡盒" : "成人"}</span>
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
@@ -2121,7 +2121,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 6 }}>商品分類</label>
               <div style={{ display: "flex", gap: 8 }}>
-                {[["adult", "成人款式", "#1565C0", "#e3f2fd"], ["kids", "兒童款式", "#c62828", "#fce4ec"]].map(([val, lbl, activeColor, activeBg]) => (
+                {[["adult", "成人款式", "#1565C0", "#e3f2fd"], ["kids", "兒童款式", "#c62828", "#fce4ec"], ["case", "眼鏡盒", "#2e7d32", "#e8f5e9"]].map(([val, lbl, activeColor, activeBg]) => (
                   <button key={val} onClick={() => setEditingProduct(p => ({ ...p, category: val }))}
                     style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: `2px solid ${(editingProduct.category || "adult") === val ? activeColor : "#e2e8f0"}`, background: (editingProduct.category || "adult") === val ? activeBg : "white", color: (editingProduct.category || "adult") === val ? activeColor : "#94a3b8", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>{lbl}</button>
                 ))}
