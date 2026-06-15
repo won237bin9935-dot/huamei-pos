@@ -771,13 +771,14 @@ function EmployeeView({ products, onOrder }) {
                             <span style={{ fontSize: 12, color: "#b0bec5", textDecoration: "line-through", fontWeight: 500, letterSpacing: 0 }}>原價 ${p.originalPrice}</span>
                           )}
                           <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "nowrap" }}>
-                            <span className="hm-product-price">${p.price}</span>
-                            {(p.category === "adult" || p.category === "kids" || !p.category) && (
-                              <span style={{ fontSize: 11, color: "#78909c", fontWeight: 500, whiteSpace: "nowrap" }}>（內含：眼鏡 × 1 ＋ 專屬保護套 × 1）</span>
-                            )}
-                          </div>
-                        </div>
-                        <span className="hm-product-stock" style={{ color: isLow ? "#ff7043" : "#64748b" }}>剩 {availableStock} 件{isLow ? " ⚠️" : ""}</span>
+                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+  <span className="hm-product-price">${p.price}</span>
+  {(p.category === "adult" || p.category === "kids" || !p.category) && (
+    <span style={{ fontSize: 11, color: "#78909c", fontWeight: 500 }}>（內含：眼鏡 × 1 ＋ 專屬保護套 × 1）</span>
+  )}
+</div>
+<span className="hm-product-stock" style={{ color: isLow ? "#ff7043" : "#64748b", textAlign: "right", display: "block" }}>剩 {availableStock} 件{isLow ? " ⚠️" : ""}</span>
+        </div>
                       </div>
                       {p.stock > 0 && (
                         inCart ? (
