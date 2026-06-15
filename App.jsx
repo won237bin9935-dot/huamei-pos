@@ -766,25 +766,18 @@ function EmployeeView({ products, onOrder }) {
                       <div className="hm-product-name">{p.name}</div>
                       <div className="hm-product-desc">{p.description || ""}</div>
                       <div className="hm-product-meta">
-                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
                           {p.originalPrice && (
                             <span style={{ fontSize: 12, color: "#b0bec5", textDecoration: "line-through", fontWeight: 500, letterSpacing: 0 }}>原價 ${p.originalPrice}</span>
                           )}
-                          <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "nowrap" }}>
-                           <div className="hm-product-meta">
-  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-    {p.originalPrice && (
-      <span style={{ fontSize: 12, color: "#b0bec5", textDecoration: "line-through", fontWeight: 500, letterSpacing: 0 }}>原價 ${p.originalPrice}</span>
-    )}
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-      <span className="hm-product-price">${p.price}</span>
-      {(p.category === "adult" || p.category === "kids" || !p.category) && (
-        <span style={{ fontSize: 11, color: "#78909c", fontWeight: 500 }}>（內含：眼鏡 × 1 ＋ 專屬保護套 × 1）</span>
-      )}
-    </div>
-    <span className="hm-product-stock" style={{ color: isLow ? "#ff7043" : "#64748b", textAlign: "right", display: "block" }}>剩 {availableStock} 件{isLow ? " ⚠️" : ""}</span>
-  </div>
-</div>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                            <span className="hm-product-price">${p.price}</span>
+                            {(p.category === "adult" || p.category === "kids" || !p.category) && (
+                              <span style={{ fontSize: 11, color: "#78909c", fontWeight: 500 }}>（內含：眼鏡 × 1 ＋ 專屬保護套 × 1）</span>
+                            )}
+                          </div>
+                          <span className="hm-product-stock" style={{ color: isLow ? "#ff7043" : "#64748b", textAlign: "right" }}>剩 {availableStock} 件{isLow ? " ⚠️" : ""}</span>
+                        </div>
                       </div>
                       {p.stock > 0 && (
                         inCart ? (
