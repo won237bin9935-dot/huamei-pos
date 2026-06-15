@@ -746,7 +746,12 @@ function EmployeeView({ products, onOrder }) {
                 return (
                   <div key={p.id} className="hm-product-card" style={{ opacity: p.stock <= 0 ? .72 : 1, borderColor: isLow ? "#ff7043" : "rgba(226,232,240,.9)" }}>
                     <div className="hm-product-img" onClick={() => setSelectedProduct(p)}>
-                      <div className="hm-product-rank">No.{String(categoryProducts.indexOf(p) + 1).padStart(2, "0")}</div>
+                      <div style={{ position: "absolute", top: 14, left: 14, display: "flex", gap: 6, zIndex: 2 }}>
+                        <div style={{ background: "rgba(15,23,42,.78)", color: "white", fontSize: 12, fontWeight: 900, padding: "3px 10px", borderRadius: 999, backdropFilter: "blur(4px)" }}>No.{String(categoryProducts.indexOf(p) + 1).padStart(2, "0")}</div>
+                        {p.hasModel && (
+                          <div style={{ background: "#4a7fa5", color: "#ffffff", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 999 }}>Model 配戴款</div>
+                        )}
+                      </div>
                       {p.image
                         ? <img src={p.image} alt={p.name} />
                         : <GlassesPlaceholder name={p.name} />}
@@ -770,10 +775,10 @@ function EmployeeView({ products, onOrder }) {
                           {p.originalPrice && (
                             <span style={{ fontSize: 12, color: "#b0bec5", textDecoration: "line-through", fontWeight: 500, letterSpacing: 0 }}>原價 ${p.originalPrice}</span>
                           )}
-                          <div style={{ display: "flex", justifyContent: "flex-start", gap: 8, alignItems: "baseline" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                             <span className="hm-product-price">${p.price}</span>
                             {(p.category === "adult" || p.category === "kids" || !p.category) && (
-                              <span style={{ fontSize: 11, color: "#78909c", fontWeight: 500 }}>（內含：眼鏡 × 1 ＋ PE袋 × 1）</span>
+                              <span style={{ fontSize: 11, color: "#78909c", fontWeight: 500 }}>（內含：眼鏡 × 1 ＋ 專屬保護套 × 1）</span>
                             )}
                           </div>
                           <span className="hm-product-stock" style={{ color: isLow ? "#ff7043" : "#64748b", textAlign: "right" }}>剩 {availableStock} 件{isLow ? " ⚠️" : ""}</span>
@@ -1316,7 +1321,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
   const [tab, setTab] = useState("orders");
   const [editingProduct, setEditingProduct] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 100, originalPrice: "", stock: 1, image: null });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 100, originalPrice: "", stock: 1, image: null, hasModel: false });
   const [showPwdChange, setShowPwdChange] = useState(false);
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
@@ -1365,9 +1370,9 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
 
   const addProduct = () => {
     if (!newProduct.name.trim()) return;
-    const p = { ...newProduct, id: Date.now(), price: Number(newProduct.price), originalPrice: newProduct.originalPrice ? Number(newProduct.originalPrice) : null, stock: Number(newProduct.stock) };
+    const p = { ...newProduct, id: Date.now(), price: Number(newProduct.price), originalPrice: newProduct.originalPrice ? Number(newProduct.originalPrice) : null, stock: Number(newProduct.stock), hasModel: newProduct.hasModel || false };
     setProducts([...products, p]);
-    setNewProduct({ name: "", description: "", price: 100, originalPrice: "", stock: 1, image: null });
+    setNewProduct({ name: "", description: "", price: 100, originalPrice: "", stock: 1, image: null, hasModel: false });
     setShowAddForm(false);
   };
 
@@ -1749,6 +1754,12 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                       style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #e2e8f0", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
                   </div>
                 ))}
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#64748b" }}>
+                  <input type="checkbox" checked={newProduct.hasModel || false} onChange={e => setNewProduct(p => ({ ...p, hasModel: e.target.checked }))} style={{ width: 16, height: 16, cursor: "pointer", accentColor: "#4a7fa5" }} />
+                  此商品有 Model 配戴款
+                </label>
               </div>
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>商品圖片</label>
@@ -2151,6 +2162,12 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                   style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #e2e8f0", borderRadius: 8, fontSize: 14, outline: "none", boxSizing: "border-box" }} />
               </div>
             ))}
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#64748b" }}>
+                <input type="checkbox" checked={editingProduct.hasModel || false} onChange={e => setEditingProduct(p => ({ ...p, hasModel: e.target.checked }))} style={{ width: 16, height: 16, cursor: "pointer", accentColor: "#4a7fa5" }} />
+                此商品有 Model 配戴款
+              </label>
+            </div>
             <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
               <button onClick={() => setEditingProduct(null)} style={{ ...btnStyle("#78909c", true), flex: 1 }}>取消</button>
               <button onClick={saveEdit} style={{ ...btnStyle("#4CAF50"), flex: 2 }}>儲存變更</button>
