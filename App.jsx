@@ -773,7 +773,7 @@ function EmployeeView({ products, onOrder }) {
                           <div style={{ display: "flex", justifyContent: "flex-start", gap: 8, alignItems: "baseline" }}>
                             <span className="hm-product-price">${p.price}</span>
                             {(p.category === "adult" || p.category === "kids" || !p.category) && (
-                              <span style={{ fontSize: 11, color: "#78909c", fontWeight: 500 }}>（內含：眼鏡 × 1 ＋ 專屬保護套 × 1）</span>
+                              <span style={{ fontSize: 11, color: "#78909c", fontWeight: 500 }}>（內含：眼鏡 × 1 ＋ PE袋 × 1）</span>
                             )}
                           </div>
                           <span className="hm-product-stock" style={{ color: isLow ? "#ff7043" : "#64748b", textAlign: "right" }}>剩 {availableStock} 件{isLow ? " ⚠️" : ""}</span>
