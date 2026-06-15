@@ -503,7 +503,7 @@ function EmployeeView({ products, onOrder }) {
             }
             .hm-category-tabs {
               display: grid;
-              grid-template-columns: repeat(2, 1fr);
+              grid-template-columns: repeat(3, 1fr);
               gap: 10px;
               padding: 4px 0 6px;
               margin-bottom: 0;
