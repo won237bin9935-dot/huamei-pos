@@ -770,7 +770,7 @@ function EmployeeView({ products, onOrder }) {
                           {p.originalPrice && (
                             <span style={{ fontSize: 12, color: "#b0bec5", textDecoration: "line-through", fontWeight: 500, letterSpacing: 0 }}>原價 ${p.originalPrice}</span>
                           )}
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                          <div style={{ display: "flex", justifyContent: "flex-start", gap: 8, alignItems: "baseline" }}>
                             <span className="hm-product-price">${p.price}</span>
                             {(p.category === "adult" || p.category === "kids" || !p.category) && (
                               <span style={{ fontSize: 11, color: "#78909c", fontWeight: 500 }}>（內含：眼鏡 × 1 ＋ 專屬保護套 × 1）</span>
