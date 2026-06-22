@@ -1248,7 +1248,7 @@ function EmployeeView({ products, onOrder }) {
               <select
                 value={form.factory}
                 onChange={e => setForm(f => ({ ...f, factory: e.target.value }))}
-                style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${form.factory === "" ? "#e2e8f0" : "#e2e8f0"}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", background: "white", color: form.factory ? "#1a2b3c" : "#94a3b8" }}
+                style={{ width: "100%", padding: "10px 14px", border: `1.5px solid #e2e8f0`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", background: "white", color: "#1a2b3c", fontWeight: 700 }}
               >
                 <option value="" disabled>請選擇取貨廠區</option>
                 <option value="中崙二廠">中崙二廠</option>
