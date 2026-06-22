@@ -155,7 +155,7 @@ function EmployeeView({ products, onOrder }) {
     try { sessionStorage.setItem("glasses:cart", JSON.stringify(next)); } catch {}
   };
   const [page, setPage] = useState("shop");
-  const [form, setForm] = useState({ name: "", employeeId: "" });
+  const [form, setForm] = useState({ name: "", employeeId: "", factory: "" });
   const [agreed, setAgreed] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
@@ -209,14 +209,14 @@ function EmployeeView({ products, onOrder }) {
   const [lastOrder, setLastOrder] = useState(null);
 
   const submitOrder = () => {
-    if (!form.name.trim() || !form.employeeId.trim()) return;
+    if (!form.name.trim() || !form.employeeId.trim() || !form.factory) return;
     if (submitting) return;
     setSubmitting(true);
     const orderData = { items: cart, ...form, total: cartTotal, date: new Date().toLocaleString("zh-TW") };
     const orderNo = onOrder(orderData);
     setLastOrder({ ...orderData, orderNo });
     setCart([]);
-    setForm({ name: "", employeeId: "" });
+    setForm({ name: "", employeeId: "", factory: "" });
     setPage("done");
     setSubmitting(false);
   };
@@ -1243,6 +1243,18 @@ function EmployeeView({ products, onOrder }) {
                 <div style={{ fontSize: 11, color: "#ff7043", marginTop: 4 }}>⚠️ 工號需為8碼，目前已輸入 {form.employeeId.length} 碼</div>
               )}
             </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>取貨廠區 <span style={{ color: "#e53935" }}>*</span></label>
+              <select
+                value={form.factory}
+                onChange={e => setForm(f => ({ ...f, factory: e.target.value }))}
+                style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${form.factory === "" ? "#e2e8f0" : "#e2e8f0"}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", background: "white", color: form.factory ? "#1a2b3c" : "#94a3b8" }}
+              >
+                <option value="" disabled>請選擇取貨廠區</option>
+                <option value="中崙二廠">中崙二廠</option>
+                <option value="樹谷廠">樹谷廠</option>
+              </select>
+            </div>
             <div style={{ background: "#f8fafc", borderRadius: 12, padding: "12px 14px", marginTop: 4, marginBottom: 20 }}>
               <div style={{ fontSize: 13, color: "#64748b", marginBottom: 6 }}>訂單明細：</div>
               {cart.map(c => (
@@ -1263,8 +1275,8 @@ function EmployeeView({ products, onOrder }) {
             </div>
             <button
               onClick={submitOrder}
-              disabled={!form.name.trim() || form.employeeId.length !== 8 || submitting || !agreed}
-              style={{ ...btnStyle("#e53935"), width: "100%", padding: "14px 0", fontSize: 16, opacity: (!form.name.trim() || form.employeeId.length !== 8 || submitting || !agreed) ? 0.5 : 1, cursor: (!form.name.trim() || form.employeeId.length !== 8 || submitting || !agreed) ? "not-allowed" : "pointer" }}>
+              disabled={!form.name.trim() || form.employeeId.length !== 8 || submitting || !agreed || !form.factory}
+              style={{ ...btnStyle("#e53935"), width: "100%", padding: "14px 0", fontSize: 16, opacity: (!form.name.trim() || form.employeeId.length !== 8 || submitting || !agreed || !form.factory) ? 0.5 : 1, cursor: (!form.name.trim() || form.employeeId.length !== 8 || submitting || !agreed || !form.factory) ? "not-allowed" : "pointer" }}>
               {submitting ? "送出中..." : "確認送出訂單"}
             </button>
           </div>
@@ -1591,15 +1603,13 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                     const filtered = status === "全部" ? orders : orders.filter(o => (o.status || "待處理") === status);
                     if (filtered.length === 0) { alert(`目前沒有「${status}」的訂單`); return; }
 
-                    const header = "訂單編號,日期,姓名,工號,商品,數量,總金額,狀態";
+                    const header = "訂單編號,日期,姓名,工號,取貨廠區,商品,數量,總金額,狀態";
                     const rows = filtered.map(o => {
                       return o.items.map((item, i) => {
                         if (i === 0) {
-                          // First item - include order info
-                          return `${o.orderNo || ""},${o.date},${o.name},${o.employeeId},${item.name},${item.qty},$${o.total},${o.status || "待處理"}`;
+                          return `${o.orderNo || ""},${o.date},${o.name},${o.employeeId},${o.factory || ""},${item.name},${item.qty},$${o.total},${o.status || "待處理"}`;
                         } else {
-                          // Subsequent items - only show product info
-                          return `,,,,${item.name},${item.qty},,`;
+                          return `,,,,,${item.name},${item.qty},,`;
                         }
                       }).join("\n");
                     }).join("\n");
