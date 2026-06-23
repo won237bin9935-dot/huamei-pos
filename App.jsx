@@ -208,12 +208,12 @@ function EmployeeView({ products, onOrder }) {
   const [submitting, setSubmitting] = useState(false);
   const [lastOrder, setLastOrder] = useState(null);
 
-  const submitOrder = () => {
+  const submitOrder = async () => {
     if (!form.name.trim() || !form.employeeId.trim() || !form.factory) return;
     if (submitting) return;
     setSubmitting(true);
     const orderData = { items: cart, ...form, total: cartTotal, date: new Date().toLocaleString("zh-TW") };
-    const orderNo = onOrder(orderData);
+    const orderNo = await onOrder(orderData);
     setLastOrder({ ...orderData, orderNo });
     setCart([]);
     setForm({ name: "", employeeId: "", factory: "" });
@@ -2250,7 +2250,7 @@ export default function App() {
   const setAdminPwd = (v) => setAdminPwdRaw(v);
   const setSuperPwd = (v) => setSuperPwdRaw(v);
 
-  const handleOrder = (order) => {
+  const handleOrder = async (order) => {
     const insufficient = order.items.filter(item => {
       const p = products.find(p => p.id === item.id);
       return !p || p.stock < item.qty;
@@ -2263,7 +2263,16 @@ export default function App() {
     const dateStr = today.getFullYear().toString() +
       String(today.getMonth() + 1).padStart(2, '0') +
       String(today.getDate()).padStart(2, '0');
-    const todayOrders = orders.filter(o => o.orderNo && o.orderNo.startsWith(dateStr));
+
+    // 下單前先重新抓最新訂單，避免同時下單互相覆蓋
+    let latestOrders = orders;
+    try {
+      const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
+      const data = await res.json();
+      if (Array.isArray(data)) latestOrders = data;
+    } catch {}
+
+    const todayOrders = latestOrders.filter(o => o.orderNo && o.orderNo.startsWith(dateStr));
     const seq = String(todayOrders.length + 1).padStart(3, '0');
     const orderNo = `${dateStr}-${seq}`;
     const updatedProducts = products.map(p => {
@@ -2272,7 +2281,7 @@ export default function App() {
       return p;
     });
     setProducts(updatedProducts);
-    setOrders([...orders, { ...order, orderNo, status: "待處理" }]);
+    setOrders([...latestOrders, { ...order, orderNo, status: "待處理" }]);
     return orderNo;
   };
 
