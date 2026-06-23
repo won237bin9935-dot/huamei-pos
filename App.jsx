@@ -35,9 +35,9 @@ function useStorage(key, defaultVal) {
         const res = await fetch(`${FIREBASE_URL}/${dbKey}.json`, { cache: "no-store" });
         const data = await res.json();
         if (!cancelled) {
-          // Only update from remote if no recent local change (within 5 seconds)
+          // Only update from remote if no recent local change (within 30 seconds)
           const now = Date.now();
-          if (isInitial || !localRef.current || (now - localRef.current > 5000)) {
+          if (isInitial || !localRef.current || (now - localRef.current > 30000)) {
             setVal(data !== null && data !== undefined ? data : defaultVal);
           }
           if (isInitial) setLoaded(true);
@@ -1404,14 +1404,22 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
     });
   };
 
-  const updateOrderStatus = (idx, status) => {
-    // 選擇「刪除此筆訂單」→ 觸發刪除彈窗
+  const updateOrderStatus = async (idx, status) => {
     if (status === "🗑 刪除此筆訂單") {
-      setArchiveModal({ idx, inputId: "", error: "", returnStock: false, isBulkDelete: false });
+      const orderNo = orders[idx]?.orderNo;
+      setArchiveModal({ idx, orderNo, inputId: "", error: "", returnStock: false, isBulkDelete: false });
       return;
     }
-    const updated = [...orders];
-    updated[idx] = { ...updated[idx], status };
+    const orderNo = orders[idx]?.orderNo;
+    let latestOrders = orders;
+    try {
+      const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
+      const data = await res.json();
+      if (Array.isArray(data)) latestOrders = data;
+    } catch {}
+    const updated = latestOrders.map(o =>
+      o.orderNo === orderNo ? { ...o, status } : o
+    );
     setOrders(updated);
   };
 
@@ -2059,29 +2067,35 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
 
             <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
               <button onClick={() => setArchiveModal(null)} style={{ ...btnStyle("#78909c", true), flex: 1 }}>取消</button>
-              <button onClick={() => {
+              <button onClick={async () => {
                 if (archiveModal.inputId.length !== 8) { setArchiveModal(m => ({ ...m, error: "請輸入完整8碼工號" })); return; }
                 const now = new Date().toLocaleString("zh-TW");
 
                 if (archiveModal.isBulkDelete) {
-                  const toDelete = [...selectedOrders];
-                  // Handle return stock for bulk
+                  const toDeleteNos = [...selectedOrders].map(i => orders[i]?.orderNo).filter(Boolean);
+                  let latestOrders = orders;
+                  try {
+                    const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
+                    const data = await res.json();
+                    if (Array.isArray(data)) latestOrders = data;
+                  } catch {}
+                  const toDeleteOrders = latestOrders.filter(o => toDeleteNos.includes(o.orderNo));
                   if (archiveModal.returnStock) {
                     const updatedProducts = [...products];
-                    toDelete.forEach(i => {
-                      orders[i].items.forEach(item => {
+                    toDeleteOrders.forEach(order => {
+                      order.items.forEach(item => {
                         const idx2 = updatedProducts.findIndex(p => p.id === item.id);
                         if (idx2 >= 0) updatedProducts[idx2] = { ...updatedProducts[idx2], stock: updatedProducts[idx2].stock + item.qty };
                       });
                     });
                     setProducts(updatedProducts);
                   }
-                  const newArchived = toDelete.map(i => ({
-                    ...orders[i], archivedAt: now, archivedBy: archiveModal.inputId.trim(),
+                  const newArchived = toDeleteOrders.map(o => ({
+                    ...o, archivedAt: now, archivedBy: archiveModal.inputId.trim(),
                     stockReturned: archiveModal.returnStock
                   }));
                   setArchivedOrders([...archivedOrders, ...newArchived]);
-                  setOrders(orders.filter((_, i) => !selectedOrders.has(i)));
+                  setOrders(latestOrders.filter(o => !toDeleteNos.includes(o.orderNo)));
                   setSelectedOrders(new Set());
                   setSelectMode(false);
                 } else {
@@ -2274,7 +2288,8 @@ export default function App() {
 
     const todayOrders = latestOrders.filter(o => o.orderNo && o.orderNo.startsWith(dateStr));
     const seq = String(todayOrders.length + 1).padStart(3, '0');
-    const orderNo = `${dateStr}-${seq}`;
+    const ts = Date.now().toString().slice(-4); // 加毫秒後4碼避免同時下單重複
+    const orderNo = `${dateStr}-${seq}-${ts}`;
     const updatedProducts = products.map(p => {
       const orderItem = order.items.find(item => item.id === p.id);
       if (orderItem) return { ...p, stock: Math.max(0, p.stock - orderItem.qty) };
@@ -2285,11 +2300,19 @@ export default function App() {
     return orderNo;
   };
 
-  const archiveOrder = (idx, confirmedId, stockReturned = false) => {
-    const order = orders[idx];
+  const archiveOrder = async (idx, confirmedId, stockReturned = false) => {
+    const orderNo = orders[idx]?.orderNo;
+    let latestOrders = orders;
+    try {
+      const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
+      const data = await res.json();
+      if (Array.isArray(data)) latestOrders = data;
+    } catch {}
+    const order = latestOrders.find(o => o.orderNo === orderNo);
+    if (!order) return;
     const archivedAt = new Date().toLocaleString("zh-TW");
     setArchivedOrders([...archivedOrders, { ...order, archivedAt, archivedBy: confirmedId, stockReturned }]);
-    setOrders(orders.filter((_, i) => i !== idx));
+    setOrders(latestOrders.filter(o => o.orderNo !== orderNo));
   };
 
   const enterAdmin = () => {
