@@ -1333,6 +1333,8 @@ function EmployeeView({ products, onOrder }) {
 // ─── ADMIN VIEW ────────────────────────────────────────────────────────────────
 function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdminPwd, archiveOrder, archivedOrders, setArchivedOrders, superPwd, setSuperPwd }) {
   const [tab, setTab] = useState("orders");
+  const [manualForm, setManualForm] = useState({ name: "", employeeId: "", factory: "", items: [{ productId: "", qty: 1 }] });
+  const [manualMsg, setManualMsg] = useState("");
   const [editingProduct, setEditingProduct] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newProduct, setNewProduct] = useState({ name: "", description: "", price: 100, originalPrice: "", stock: 1, image: null, hasModel: false });
@@ -1839,8 +1841,6 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
 
       {/* TOP3 Tab */}
       {tab === "manual" && (() => {
-        const [manualForm, setManualForm] = React.useState({ name: "", employeeId: "", factory: "", items: [{ productId: "", qty: 1 }] });
-        const [manualMsg, setManualMsg] = React.useState("");
         const addItem = () => setManualForm(f => ({ ...f, items: [...f.items, { productId: "", qty: 1 }] }));
         const removeItem = (i) => setManualForm(f => ({ ...f, items: f.items.filter((_, idx) => idx !== i) }));
         const updateItem = (i, key, val) => setManualForm(f => ({ ...f, items: f.items.map((item, idx) => idx === i ? { ...item, [key]: val } : item) }));
@@ -1866,6 +1866,12 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
           const orderNo = `${dateStr}-${seq}-${ts}`;
           const newOrder = { name: manualForm.name.trim(), employeeId: manualForm.employeeId, factory: manualForm.factory, items, total, date: new Date().toLocaleString("zh-TW"), orderNo, status: "待處理", manual: true };
           setOrders([...latestOrders, newOrder]);
+          const updatedProducts = products.map(p => {
+            const orderItem = items.find(i => i.id === p.id);
+            if (orderItem) return { ...p, stock: Math.max(0, p.stock - orderItem.qty) };
+            return p;
+          });
+          setProducts(updatedProducts);
           setManualMsg(`✅ 補單成功！訂單編號：${orderNo}`);
           setManualForm({ name: "", employeeId: "", factory: "", items: [{ productId: "", qty: 1 }] });
         };
