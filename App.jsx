@@ -2099,15 +2099,17 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                   setSelectedOrders(new Set());
                   setSelectMode(false);
                 } else {
-                  // Single order delete
+                  // Single order delete - use orderNo to find correct order
                   if (archiveModal.returnStock) {
-                    const order = orders[archiveModal.idx];
-                    const updatedProducts = products.map(p => {
-                      const orderItem = order.items.find(item => item.id === p.id);
-                      if (orderItem) return { ...p, stock: p.stock + orderItem.qty };
-                      return p;
-                    });
-                    setProducts(updatedProducts);
+                    const order = orders.find(o => o.orderNo === archiveModal.orderNo);
+                    if (order) {
+                      const updatedProducts = products.map(p => {
+                        const orderItem = order.items.find(item => item.id === p.id);
+                        if (orderItem) return { ...p, stock: p.stock + orderItem.qty };
+                        return p;
+                      });
+                      setProducts(updatedProducts);
+                    }
                   }
                   archiveOrder(archiveModal.idx, archiveModal.inputId.trim(), archiveModal.returnStock);
                 }
