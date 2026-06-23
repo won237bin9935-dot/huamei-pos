@@ -1560,6 +1560,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
       <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
         {[
           ["orders",   <IconOrders />, "訂單管理",    "#ffffff", "#1565C0", "#1976D2"],
+          ["manual",   "✏️",           "手動補單",    "#ffffff", "#2e7d32", "#388e3c"],
           ["top3",     "🏆",          "熱賣TOP3",    "#ffffff", "#E65100", "#F57F17"],
           ["archived", "🗑",          "刪除訂單紀錄","#ffffff", "#37474f", "#546e7a"],
           ["inventory",<IconPackage />,"商品管理",    "#ffffff", "#c62828", "#e53935"],
@@ -1837,6 +1838,83 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
       )}
 
       {/* TOP3 Tab */}
+      {tab === "manual" && (() => {
+        const [manualForm, setManualForm] = React.useState({ name: "", employeeId: "", factory: "", items: [{ productId: "", qty: 1 }] });
+        const [manualMsg, setManualMsg] = React.useState("");
+        const addItem = () => setManualForm(f => ({ ...f, items: [...f.items, { productId: "", qty: 1 }] }));
+        const removeItem = (i) => setManualForm(f => ({ ...f, items: f.items.filter((_, idx) => idx !== i) }));
+        const updateItem = (i, key, val) => setManualForm(f => ({ ...f, items: f.items.map((item, idx) => idx === i ? { ...item, [key]: val } : item) }));
+        const submitManual = async () => {
+          if (!manualForm.name.trim() || manualForm.employeeId.length !== 8 || !manualForm.factory) { setManualMsg("❌ 請填寫完整資料"); return; }
+          if (manualForm.items.some(i => !i.productId || i.qty < 1)) { setManualMsg("❌ 請選擇商品及數量"); return; }
+          const items = manualForm.items.map(i => {
+            const p = products.find(p => String(p.id) === String(i.productId));
+            return { id: p.id, name: p.name, price: p.price, qty: Number(i.qty) };
+          });
+          const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+          const today = new Date();
+          const dateStr = today.getFullYear().toString() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
+          let latestOrders = orders;
+          try {
+            const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
+            const data = await res.json();
+            if (Array.isArray(data)) latestOrders = data;
+          } catch {}
+          const todayOrders = latestOrders.filter(o => o.orderNo && o.orderNo.startsWith(dateStr));
+          const seq = String(todayOrders.length + 1).padStart(3, '0');
+          const ts = Date.now().toString().slice(-4);
+          const orderNo = `${dateStr}-${seq}-${ts}`;
+          const newOrder = { name: manualForm.name.trim(), employeeId: manualForm.employeeId, factory: manualForm.factory, items, total, date: new Date().toLocaleString("zh-TW"), orderNo, status: "待處理", manual: true };
+          setOrders([...latestOrders, newOrder]);
+          setManualMsg(`✅ 補單成功！訂單編號：${orderNo}`);
+          setManualForm({ name: "", employeeId: "", factory: "", items: [{ productId: "", qty: 1 }] });
+        };
+        return (
+          <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#1a2b3c", marginBottom: 20 }}>✏️ 手動補單</div>
+            {[
+              { label: "姓名 *", key: "name", placeholder: "員工姓名" },
+              { label: "工號 * (8碼)", key: "employeeId", placeholder: "00000000" },
+            ].map(f => (
+              <div key={f.key} style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>{f.label}</label>
+                <input value={manualForm[f.key]} onChange={e => { const v = f.key === "employeeId" ? e.target.value.replace(/\D/g, "").slice(0, 8) : e.target.value; setManualForm(fm => ({ ...fm, [f.key]: v })); }} placeholder={f.placeholder}
+                  style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #e2e8f0", borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box" }} />
+              </div>
+            ))}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>取貨廠區 *</label>
+              <select value={manualForm.factory} onChange={e => setManualForm(f => ({ ...f, factory: e.target.value }))}
+                style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #e2e8f0", borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", background: "white", color: "#1a2b3c", fontWeight: 700 }}>
+                <option value="" disabled>請選擇取貨廠區</option>
+                <option value="中崙二廠">中崙二廠</option>
+                <option value="樹谷廠">樹谷廠</option>
+              </select>
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#64748b", marginBottom: 8 }}>商品 *</label>
+              {manualForm.items.map((item, i) => (
+                <div key={i} style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "center" }}>
+                  <select value={item.productId} onChange={e => updateItem(i, "productId", e.target.value)}
+                    style={{ flex: 3, padding: "10px 14px", border: "1.5px solid #e2e8f0", borderRadius: 10, fontSize: 14, outline: "none", background: "white", color: "#1a2b3c" }}>
+                    <option value="" disabled>請選擇商品</option>
+                    {products.map(p => <option key={p.id} value={p.id}>{p.name}（${p.price}）</option>)}
+                  </select>
+                  <input type="number" min={1} value={item.qty} onChange={e => updateItem(i, "qty", e.target.value)}
+                    style={{ flex: 1, padding: "10px 10px", border: "1.5px solid #e2e8f0", borderRadius: 10, fontSize: 14, outline: "none", textAlign: "center" }} />
+                  {manualForm.items.length > 1 && (
+                    <button onClick={() => removeItem(i)} style={{ background: "#ffebee", color: "#e53935", border: "none", borderRadius: 8, padding: "8px 12px", cursor: "pointer", fontWeight: 700 }}>✕</button>
+                  )}
+                </div>
+              ))}
+              <button onClick={addItem} style={{ background: "#e8f5e9", color: "#2e7d32", border: "none", borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: 700, marginTop: 4 }}>＋ 新增商品</button>
+            </div>
+            {manualMsg && <div style={{ marginBottom: 14, fontSize: 14, fontWeight: 600, color: manualMsg.startsWith("✅") ? "#2e7d32" : "#e53935" }}>{manualMsg}</div>}
+            <button onClick={submitManual} style={{ ...btnStyle("#2e7d32"), width: "100%", padding: "13px 0", fontSize: 15 }}>確認補單</button>
+          </div>
+        );
+      })()}
+
       {tab === "top3" && (() => {
         const salesMap = {};
         orders.forEach(o => {
