@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 
 const FIREBASE_URL = "https://huamei-pos-default-rtdb.asia-southeast1.firebasedatabase.app";
 
-const SALE_PAUSED = true; // 改成 true 關閉網站，false 重新開放
+// 網站開關現在由 Firebase glasses_sale_open 控制，在後台直接點「關閉/開放網站」按鈕即可
+// 預覽模式：網址加上 ?preview=true 可讓管理員看到前台，員工不受影響
 
 const DEFAULT_ADMIN_PASSWORD = "HuaMei2026";
 
@@ -27,7 +28,7 @@ function useStorage(key, defaultVal) {
   const [loaded, setLoaded] = useState(false);
   const dbKey = key.replace(/[:.]/g, "_");
   const intervalRef = useRef(null);
-  const localRef = useRef(null); // Track local version to avoid overwrite
+  const localRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,10 +38,13 @@ function useStorage(key, defaultVal) {
         const res = await fetch(`${FIREBASE_URL}/${dbKey}.json`, { cache: "no-store" });
         const data = await res.json();
         if (!cancelled) {
-          // Only update from remote if no recent local change (within 30 seconds)
           const now = Date.now();
           if (isInitial || !localRef.current || (now - localRef.current > 30000)) {
-            setVal(data !== null && data !== undefined ? data : defaultVal);
+            if (dbKey === "glasses_orders" && data && !Array.isArray(data)) {
+              setVal(Object.values(data));
+            } else {
+              setVal(data !== null && data !== undefined ? data : defaultVal);
+            }
           }
           if (isInitial) setLoaded(true);
         }
@@ -54,7 +58,6 @@ function useStorage(key, defaultVal) {
 
     load(true);
 
-    // Poll every 10 seconds
     intervalRef.current = setInterval(() => {
       if (!cancelled) load(false);
     }, 10000);
@@ -66,7 +69,7 @@ function useStorage(key, defaultVal) {
   }, [dbKey]);
 
   const save = async (v) => {
-    localRef.current = Date.now(); // Mark local change time
+    localRef.current = Date.now();
     setVal(v);
     try {
       const res = await fetch(`${FIREBASE_URL}/${dbKey}.json`, {
@@ -80,8 +83,49 @@ function useStorage(key, defaultVal) {
     }
   };
 
-  return [val, save, loaded];
+  // setLocalOnly: 只更新本地 state，不寫 Firebase（給 orders 用）
+  const setLocalOnly = (v) => {
+    localRef.current = Date.now();
+    setVal(typeof v === "function" ? v(val) : v);
+  };
+
+  return [val, save, loaded, setLocalOnly];
 }
+
+// Firebase helpers for per-order operations
+const firebasePatchOrder = async (orderNo, orderData) => {
+  const key = orderNo.replace(/[^a-zA-Z0-9]/g, "_");
+  await fetch(`${FIREBASE_URL}/glasses_orders/${key}.json`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(orderData)
+  });
+};
+
+const firebaseDeleteOrder = async (orderNo) => {
+  const key = orderNo.replace(/[^a-zA-Z0-9]/g, "_");
+  await fetch(`${FIREBASE_URL}/glasses_orders/${key}.json`, {
+    method: "DELETE"
+  });
+};
+
+const firebaseFetchOrders = async () => {
+  try {
+    const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
+    const data = await res.json();
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    return Object.values(data);
+  } catch { return []; }
+};
+
+const firebaseFetchSaleOpen = async () => {
+  try {
+    const res = await fetch(`${FIREBASE_URL}/glasses_sale_open.json`, { cache: "no-store" });
+    const data = await res.json();
+    return data !== false; // default open if not set
+  } catch { return true; }
+};
 
 // ─── Icon Components ───────────────────────────────────────────────────────────
 const IconCart = () => (
@@ -1331,7 +1375,7 @@ function EmployeeView({ products, onOrder }) {
 }
 
 // ─── ADMIN VIEW ────────────────────────────────────────────────────────────────
-function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdminPwd, archiveOrder, archivedOrders, setArchivedOrders, superPwd, setSuperPwd }) {
+function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdminPwd, archiveOrder, archivedOrders, setArchivedOrders, superPwd, setSuperPwd, saleOpen, onToggleSale }) {
   const [tab, setTab] = useState("orders");
   const [manualForm, setManualForm] = useState({ name: "", employeeId: "", factory: "", items: [{ productId: "", qty: 1 }] });
   const [manualMsg, setManualMsg] = useState("");
@@ -1415,16 +1459,14 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
       return;
     }
     const orderNo = orders[idx]?.orderNo;
-    let latestOrders = orders;
-    try {
-      const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
-      const data = await res.json();
-      if (Array.isArray(data)) latestOrders = data;
-    } catch {}
-    const updated = latestOrders.map(o =>
-      o.orderNo === orderNo ? { ...o, status } : o
-    );
-    setOrders(updated);
+    if (!orderNo) return;
+    const latestOrders = await firebaseFetchOrders();
+    const order = latestOrders.find(o => o.orderNo === orderNo);
+    if (!order) return;
+    const updatedOrder = { ...order, status };
+    // 逐筆 PATCH，只改這一筆
+    await firebasePatchOrder(orderNo, updatedOrder);
+    setOrders(latestOrders.map(o => o.orderNo === orderNo ? updatedOrder : o));
   };
 
   const statusColor = {
@@ -1448,6 +1490,9 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => { setShowPwdChange(!showPwdChange); setShowSuperPwdChange(false); }} style={{ ...btnStyle("#78909c", true), fontSize: 12, padding: "6px 12px" }}>🔑 修改密碼</button>
           <button onClick={() => { setShowSuperPwdChange(!showSuperPwdChange); setShowPwdChange(false); }} style={{ ...btnStyle("#c62828", true), fontSize: 12, padding: "6px 12px" }}>⭐ 授權密碼</button>
+          <button onClick={onToggleSale} style={{ ...btnStyle(saleOpen ? "#e53935" : "#2e7d32"), fontSize: 12, padding: "6px 12px" }}>
+            {saleOpen ? "🔒 關閉網站" : "🟢 開放網站"}
+          </button>
         </div>
       </div>
 
@@ -1849,22 +1894,21 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
           if (manualForm.items.some(i => !i.productId || i.qty < 1)) { setManualMsg("❌ 請選擇商品及數量"); return; }
           const items = manualForm.items.map(i => {
             const p = products.find(p => String(p.id) === String(i.productId));
+            if (!p) return null;
             return { id: p.id, name: p.name, price: p.price, qty: Number(i.qty) };
-          });
+          }).filter(Boolean);
+          if (items.length === 0) { setManualMsg("❌ 商品資料有誤，請重新選擇"); return; }
           const total = items.reduce((s, i) => s + i.price * i.qty, 0);
           const today = new Date();
           const dateStr = today.getFullYear().toString() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
-          let latestOrders = orders;
-          try {
-            const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
-            const data = await res.json();
-            if (Array.isArray(data)) latestOrders = data;
-          } catch {}
+          const latestOrders = await firebaseFetchOrders();
           const todayOrders = latestOrders.filter(o => o.orderNo && o.orderNo.startsWith(dateStr));
           const seq = String(todayOrders.length + 1).padStart(3, '0');
           const ts = Date.now().toString().slice(-4);
           const orderNo = `${dateStr}-${seq}-${ts}`;
           const newOrder = { name: manualForm.name.trim(), employeeId: manualForm.employeeId, factory: manualForm.factory, items, total, date: new Date().toLocaleString("zh-TW"), orderNo, status: "待處理", manual: true };
+          // 逐筆 PATCH 寫入
+          await firebasePatchOrder(orderNo, newOrder);
           setOrders([...latestOrders, newOrder]);
           const updatedProducts = products.map(p => {
             const orderItem = items.find(i => i.id === p.id);
@@ -2159,12 +2203,7 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
 
                 if (archiveModal.isBulkDelete) {
                   const toDeleteNos = [...selectedOrders].map(i => orders[i]?.orderNo).filter(Boolean);
-                  let latestOrders = orders;
-                  try {
-                    const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
-                    const data = await res.json();
-                    if (Array.isArray(data)) latestOrders = data;
-                  } catch {}
+                  const latestOrders = await firebaseFetchOrders();
                   const toDeleteOrders = latestOrders.filter(o => toDeleteNos.includes(o.orderNo));
                   if (archiveModal.returnStock) {
                     const updatedProducts = [...products];
@@ -2181,13 +2220,16 @@ function AdminView({ products, setProducts, orders, setOrders, adminPwd, setAdmi
                     stockReturned: archiveModal.returnStock
                   }));
                   setArchivedOrders([...archivedOrders, ...newArchived]);
+                  // 逐筆 DELETE
+                  await Promise.all(toDeleteNos.map(no => firebaseDeleteOrder(no)));
                   setOrders(latestOrders.filter(o => !toDeleteNos.includes(o.orderNo)));
                   setSelectedOrders(new Set());
                   setSelectMode(false);
                 } else {
                   // Single order delete - use orderNo to find correct order
                   if (archiveModal.returnStock) {
-                    const order = orders.find(o => o.orderNo === archiveModal.orderNo);
+                    const latestOrders = await firebaseFetchOrders();
+                    const order = latestOrders.find(o => o.orderNo === archiveModal.orderNo);
                     if (order) {
                       const updatedProducts = products.map(p => {
                         const orderItem = order.items.find(item => item.id === p.id);
@@ -2309,10 +2351,11 @@ function btnStyle(color, outline = false) {
 // ─── APP ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [products, setProductsRaw, prodLoaded] = useStorage("glasses:products", SAMPLE_PRODUCTS);
-  const [orders, setOrdersRaw, ordLoaded] = useStorage("glasses:orders", []);
+  const [orders, , ordLoaded, setOrdersLocal] = useStorage("glasses:orders", []);
   const [archivedOrders, setArchivedOrdersRaw, archLoaded] = useStorage("glasses:archived", []);
   const [adminPwd, setAdminPwdRaw, pwdLoaded] = useStorage("glasses:adminpwd", DEFAULT_ADMIN_PASSWORD);
   const [superPwd, setSuperPwdRaw, superPwdLoaded] = useStorage("glasses:superpwd", "HuaMei@Super2026");
+  const [saleOpen, setSaleOpen] = useState(true);
   const [view, setView] = useState(() => {
     try { return sessionStorage.getItem("glasses:adminView") === "admin" ? "admin" : "shop"; } catch { return "shop"; }
   });
@@ -2320,6 +2363,20 @@ export default function App() {
   const [pwd, setPwd] = useState("");
   const [pwdErr, setPwdErr] = useState(false);
   const [minLoadingDone, setMinLoadingDone] = useState(false);
+
+  // Check preview mode: ?preview=true in URL bypasses SALE_PAUSED
+  const isPreviewMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "true";
+
+  // Fetch saleOpen from Firebase on load and poll
+  useEffect(() => {
+    const checkSaleOpen = async () => {
+      const open = await firebaseFetchSaleOpen();
+      setSaleOpen(open);
+    };
+    checkSaleOpen();
+    const interval = setInterval(checkSaleOpen, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setMinLoadingDone(true), 3000);
@@ -2346,8 +2403,16 @@ export default function App() {
     }
   };
 
-  const setProducts = (v) => setProductsRaw(typeof v === "function" ? v(products) : v);
-  const setOrders = (v) => setOrdersRaw(typeof v === "function" ? v(orders) : v);
+  const onToggleSale = async () => {
+    const newVal = !saleOpen;
+    setSaleOpen(newVal);
+    await fetch(`${FIREBASE_URL}/glasses_sale_open.json`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newVal)
+    });
+  };
+  const setOrders = (v) => setOrdersLocal(typeof v === "function" ? v(orders) : v);
   const setArchivedOrders = (v) => setArchivedOrdersRaw(typeof v === "function" ? v(archivedOrders) : v);
   const setAdminPwd = (v) => setAdminPwdRaw(v);
   const setSuperPwd = (v) => setSuperPwdRaw(v);
@@ -2366,40 +2431,51 @@ export default function App() {
       String(today.getMonth() + 1).padStart(2, '0') +
       String(today.getDate()).padStart(2, '0');
 
-    // 下單前先重新抓最新訂單，避免同時下單互相覆蓋
-    let latestOrders = orders;
-    try {
-      const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
-      const data = await res.json();
-      if (Array.isArray(data)) latestOrders = data;
-    } catch {}
-
+    // 下單前先抓最新訂單
+    const latestOrders = await firebaseFetchOrders();
     const todayOrders = latestOrders.filter(o => o.orderNo && o.orderNo.startsWith(dateStr));
     const seq = String(todayOrders.length + 1).padStart(3, '0');
-    const ts = Date.now().toString().slice(-4); // 加毫秒後4碼避免同時下單重複
+    const ts = Date.now().toString().slice(-4);
     const orderNo = `${dateStr}-${seq}-${ts}`;
+
+    const newOrder = { ...order, orderNo, status: "待處理" };
+
+    // 逐筆 PATCH 寫入，不覆蓋其他訂單
+    await firebasePatchOrder(orderNo, newOrder);
+
+    // 扣庫存
     const updatedProducts = products.map(p => {
       const orderItem = order.items.find(item => item.id === p.id);
       if (orderItem) return { ...p, stock: Math.max(0, p.stock - orderItem.qty) };
       return p;
     });
     setProducts(updatedProducts);
-    setOrders([...latestOrders, { ...order, orderNo, status: "待處理" }]);
+
+    // 更新本地 orders 狀態
+    setOrders([...latestOrders, newOrder]);
+
+    // 下單後1秒驗證訂單是否真的寫入成功
+    setTimeout(async () => {
+      const verifyOrders = await firebaseFetchOrders();
+      const found = verifyOrders.find(o => o.orderNo === orderNo);
+      if (!found) {
+        alert(`⚠️ 訂單可能未成功寫入，請截圖此畫面並聯繫人資確認！\n訂單編號：${orderNo}`);
+      }
+    }, 1500);
+
     return orderNo;
   };
 
   const archiveOrder = async (idx, confirmedId, stockReturned = false) => {
     const orderNo = orders[idx]?.orderNo;
-    let latestOrders = orders;
-    try {
-      const res = await fetch(`${FIREBASE_URL}/glasses_orders.json`, { cache: "no-store" });
-      const data = await res.json();
-      if (Array.isArray(data)) latestOrders = data;
-    } catch {}
+    if (!orderNo) return;
+    const latestOrders = await firebaseFetchOrders();
     const order = latestOrders.find(o => o.orderNo === orderNo);
     if (!order) return;
     const archivedAt = new Date().toLocaleString("zh-TW");
+    // 先寫入 archived，再從 orders 刪除
     setArchivedOrders([...archivedOrders, { ...order, archivedAt, archivedBy: confirmedId, stockReturned }]);
+    await firebaseDeleteOrder(orderNo);
     setOrders(latestOrders.filter(o => o.orderNo !== orderNo));
   };
 
@@ -2545,14 +2621,14 @@ export default function App() {
       {/* Main Content */}
       <div style={view === "shop" ? { width: "100%", margin: 0, padding: 0 } : { maxWidth: 720, margin: "0 auto", padding: "28px 20px" }}>
         {view === "shop"
-          ? SALE_PAUSED
+          ? (!saleOpen && !isPreviewMode)
             ? <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 16 }}>
                 <div style={{ fontSize: 48 }}>🚧</div>
                 <div style={{ fontSize: 22, fontWeight: 900, color: "#1a2b3c" }}>系統暫時維護中</div>
                 <div style={{ fontSize: 15, color: "#64748b", textAlign: "center" }}>特賣活動暫時暫停，請稍後再試<br/>如有問題請聯繫人資單位</div>
               </div>
             : <EmployeeView products={products} onOrder={handleOrder} />
-          : <AdminView products={products} setProducts={setProducts} orders={orders} setOrders={setOrders} adminPwd={adminPwd} setAdminPwd={setAdminPwd} archiveOrder={archiveOrder} archivedOrders={archivedOrders} setArchivedOrders={setArchivedOrders} superPwd={superPwd} setSuperPwd={setSuperPwd} />}
+          : <AdminView products={products} setProducts={setProducts} orders={orders} setOrders={setOrders} adminPwd={adminPwd} setAdminPwd={setAdminPwd} archiveOrder={archiveOrder} archivedOrders={archivedOrders} setArchivedOrders={setArchivedOrders} superPwd={superPwd} setSuperPwd={setSuperPwd} saleOpen={saleOpen} onToggleSale={onToggleSale} />}
       </div>
 
       {/* Password Modal */}
