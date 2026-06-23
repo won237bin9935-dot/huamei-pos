@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 
 const FIREBASE_URL = "https://huamei-pos-default-rtdb.asia-southeast1.firebasedatabase.app";
 
+const SALE_PAUSED = true; // 改成 true 關閉網站，false 重新開放
+
 const DEFAULT_ADMIN_PASSWORD = "HuaMei2026";
 
 const SAMPLE_PRODUCTS = [];
@@ -2459,7 +2461,13 @@ export default function App() {
       {/* Main Content */}
       <div style={view === "shop" ? { width: "100%", margin: 0, padding: 0 } : { maxWidth: 720, margin: "0 auto", padding: "28px 20px" }}>
         {view === "shop"
-          ? <EmployeeView products={products} onOrder={handleOrder} />
+          ? SALE_PAUSED
+            ? <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 16 }}>
+                <div style={{ fontSize: 48 }}>🚧</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#1a2b3c" }}>系統暫時維護中</div>
+                <div style={{ fontSize: 15, color: "#64748b", textAlign: "center" }}>特賣活動暫時暫停，請稍後再試<br/>如有問題請聯繫人資單位</div>
+              </div>
+            : <EmployeeView products={products} onOrder={handleOrder} />
           : <AdminView products={products} setProducts={setProducts} orders={orders} setOrders={setOrders} adminPwd={adminPwd} setAdminPwd={setAdminPwd} archiveOrder={archiveOrder} archivedOrders={archivedOrders} setArchivedOrders={setArchivedOrders} superPwd={superPwd} setSuperPwd={setSuperPwd} />}
       </div>
 
