@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 const FIREBASE_URL = "https://huamei-pos-default-rtdb.asia-southeast1.firebasedatabase.app";
 
-const SALE_PAUSED = false; // 改成 true 關閉網站，false 重新開放
+const SALE_PAUSED = true; // 改成 true 關閉網站，false 重新開放
 
 const DEFAULT_ADMIN_PASSWORD = "HuaMei2026";
 
